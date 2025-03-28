@@ -81,7 +81,6 @@ By using autopilot it is possible to build a multi region cluster with a redunda
 terraform -chdir=terraform/gke-autopilot init -var project_id=predictx-postgrescluster
 terraform -chdir=terraform/gke-autopilot plan -var project_id=predictx-postgrescluster
 terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgrescluster
-
 ```
 
 ## Helm Installer for PostgreSQL
