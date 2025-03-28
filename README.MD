@@ -1,12 +1,13 @@
 # 🚀 Deploy PostgreSQL on GKE with Terraform
 
-This package provides instructions for creating a multi zone redundant stateful implementation of postgresql thru Helm
-using Google Cloud GKE Vertically Autoscaling Cluster, it uses the reference samples and best practice steps provided by google cloud docs See [Here](https://github.com/aziouk/kubernetes-engine-samples) for more and a link to the original GoogleCloudPlatform repo.
+This package provides instructions for creating a multi region redundant stateful implementation of postgresql thru Helm, with and without autopilot, with DR and without DR backup.
+We are using Google Cloud GKE Vertically Autoscaling Cluster, it uses the reference samples and best practice steps provided by google cloud docs See [Here](https://github.com/aziouk/kubernetes-engine-samples) for more and a link to the original GoogleCloudPlatform samples repo.
 
-The scripts here will allow you to perform step-by-step for **Google Kubernetes Engine (GKE) cluster** and a **PostgreSQL database** using **Terraform & Helm**.
+The scripts carefully explained eblow will allow you to perform step-by-step terraform build and teardown of **Google Kubernetes Engine (GKE) cluster** and a **PostgreSQL database** using **Terraform & Helm**. 
 
+There are two main components at present, the first piece of the automation is <mark> terraform</mark> and the second component is the helm installer in the form of a shell script, which carries out the necessary preparation tasks. It is possible to integrate both processes into one installer, however it makes sense that it would be useful to build both clusters and the implementation on the cluster seperately, since their tasks are mutually exclusive. That way the first component of GKE cluster automation could be used for implementation of any helm chart, therefore makihng the software considerably more modular/reusable.
 
-
+I do not have a lot of experience with Devops on GCP, but the scripts should be helpful for anyone wanting to build google GKE Clusters with and without autopilot, without and without DR, and with postgressql or any other chart. This way I figure that additional addin's can be created as forks of this script to install theoretically any chart onto a cluster.
 
 ## 📌 Prerequisites
 
