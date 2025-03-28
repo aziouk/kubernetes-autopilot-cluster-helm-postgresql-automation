@@ -64,6 +64,7 @@ Carefully noting the Google Cloud reference [here](https://cloud.google.com/kube
 
 If google unit tested their referenced templates against their own cloud account, like other cloud providers do, then such issues could be caught and prevented. I suppose there is something ironic about a stateful template failing to achieve a workable state from the documentation of the cloud provider that invented the product, but we should cocentrate on the changes below;
 # Creating the necessary IAM bindings
+Replacing <mail> with the desired service account user
 ``` 
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/storage.objectViewer
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/logging.logWriter
@@ -78,6 +79,14 @@ gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<
 By using autopilot it is possible to build a multi region cluster with a redundant backup and nodes in seperate regions, as well as receive additional data for logging and analytics.
 ```
 terraform -chdir=terraform/gke-autopilot init -var project_id=predictx-postgrescluster
+terraform -chdir=terraform/gke-autopilot plan -var project_id=predictx-postgrescluster
+terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgrescluster
+
 ```
+
+## Helm Installer for PostgreSQL
+To apply postgresql images to build clusters a convenient ./helm_deploy_postgres.sh script is provided. However a summary of the tasks it performs are included below for your reference. 
+
+<mark>Simply run ./helm_deploy_postgres.sh and the below steps are automatically carried out.</mark>
 
 
