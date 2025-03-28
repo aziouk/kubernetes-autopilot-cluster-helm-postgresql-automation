@@ -57,24 +57,6 @@ roles/resourcemanager.projectIamAdmin
 roles/viewer
 ```yaml
 
-##Specific IAM Permissions (Updated 28/03/2025)
-It appears there has been several changes to IAM that make these permissions more granular. 
-
-Carefully note the google reference [here](https://cloud.google.com/kubernetes-engine/docs/tutorials/stateful-workloads/postgresql#autopilot) contains significant inaccuracies and typos, for example <mark>role/artifactregistry.Admin</mark> should be prefixed by <mark>roles/</mark> not role/ and secondly is actually named <mark>artifactregistry.repoAdmin</mark> not artifactregistry.repo</mark> as of 28/03/2025. It seems that the Google Clouds SDK own documentation repository is floating unworkable example templates which are maintained by nobody, or it is just not big priority for them. 
-
-Of course if they performed unit tests on their documentation and it's referenced templates such issues could be caught. It seems though - google doesn't really care about accurate and trouble-free documentation for their products. This seems to be because of the rate the software changes.
-
-```bash
-# Creating the necessary IAM bindings;
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/storage.objectViewer
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/logging.logWriter
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/artifactregistry.reader
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/artifactregistry.writer
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<emali>" --role=roles/artifactregistry.repoAdmin
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<mail>" --role=roles/container.clusterAdmin
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/serviceusage.serviceUsageAdmin
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/iam.serviceAccountAdmin
-```bash
 
 
 
