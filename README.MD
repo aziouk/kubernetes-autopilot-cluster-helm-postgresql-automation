@@ -66,12 +66,12 @@ Of course if they performed unit tests on their documentation and it's reference
 
 ```
 # Creating the necessary IAM bindings;
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/storage.objectViewer
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/logging.logWriter
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/artifactregistry.reader
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/artifactregistry.writer
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<emali>" --role=roles/artifactregistry.repoAdmin
-[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<mail>" --role=roles/container.clusterAdmin
+[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/storage.objectViewer
+[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/logging.logWriter
+[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/artifactregistry.reader
+[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/artifactregistry.writer
+[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/artifactregistry.repoAdmin
+[root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/container.clusterAdmin
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/serviceusage.serviceUsageAdmin
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/iam.serviceAccountAdmin
 ```
