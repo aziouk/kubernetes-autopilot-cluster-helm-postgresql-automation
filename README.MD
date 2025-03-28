@@ -32,7 +32,7 @@ gcloud services enable \
   container.googleapis.com \
   iam.googleapis.com \
   secretmanager.googleapis.com  # If using Google Secret Manager
-
+```bash
 
 ## ⚡ Quick Start  
 
