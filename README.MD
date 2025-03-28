@@ -96,8 +96,9 @@ To apply postgresql images and prepare the GKE cluster for ha a convenient ./hel
 
 <mark>Simply run ./helm_deploy_postgres.sh and the below steps are automatically carried out.</mark>
 
-```
-
+```bash
+chmod +x helm_deploy_postgres.sh
+./helm_deploy_postgres.sh
 
 
 
