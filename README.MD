@@ -75,7 +75,7 @@ gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/serviceusage.serviceUsageAdmin
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/iam.serviceAccountAdmin
 ```
-# Install with GKE with Autopilot via Terraform  
+# Install GKE Region Cluster with Autopilot (with DR) 
 By using autopilot it is possible to build a multi region cluster with a redundant backup and nodes in seperate regions, as well as receive additional data for logging and analytics.
 ```
 terraform -chdir=terraform/gke-autopilot init -var project_id=predictx-postgrescluster
@@ -84,7 +84,7 @@ terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgres
 ```
 
 
-# Install with GKE without Autopilot via Terraform (GKE Standard)
+# Install GKE Cluster without Autopilot (without DR)
 ```
 terraform -chdir=terraform/gke-standard init
 terraform -chdir=terraform/gke-standard plan -var project_id=$PROJECT_ID
