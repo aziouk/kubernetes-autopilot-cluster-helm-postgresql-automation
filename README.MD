@@ -64,22 +64,15 @@ Carefully note the google reference [here](https://cloud.google.com/kubernetes-e
 
 Of course if they performed unit tests on their documentation and it's referenced templates such issues could be caught. It seems though - google doesn't really care about accurate and trouble-free documentation for their products. This seems to be because of the rate the software changes.
 
-bash```
+```bash
 # Creating the necessary IAM bindings;
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/storage.objectViewer
-
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/logging.logWriter
-
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/artifactregistry.reader
-
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:adam@<email>" --role=roles/artifactregistry.writer
-
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<emali>" --role=roles/artifactregistry.repoAdmin
-
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<mail>" --role=roles/container.clusterAdmin
-
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/serviceusage.serviceUsageAdmin
-
 [root@localhost 3-predictx-postgresdb]# gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/iam.serviceAccountAdmin
 ```bash
 
