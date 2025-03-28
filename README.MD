@@ -41,7 +41,7 @@ gcloud services enable \
 ```bash
 git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
 cd kubernetes-autopilot-cluster-helm-postgresql-automation/gke-stateful-postgres
-
+```bash
 
 ## ✅ Required IAM Permissions  
 
