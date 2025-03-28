@@ -75,7 +75,7 @@ gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/serviceusage.serviceUsageAdmin
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/iam.serviceAccountAdmin
 ```
-## Initializing, Planning and Applying Autopilot GKE Template via Terraform  
+#Autopilot GKE PostgreSQL Cluster Template Terraform  
 By using autopilot it is possible to build a multi region cluster with a redundant backup and nodes in seperate regions, as well as receive additional data for logging and analytics.
 ```
 terraform -chdir=terraform/gke-autopilot init -var project_id=predictx-postgrescluster
@@ -85,8 +85,15 @@ terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgres
 ```
 
 ## Helm Installer for PostgreSQL
-To apply postgresql images to build clusters a convenient ./helm_deploy_postgres.sh script is provided. However a summary of the tasks it performs are included below for your reference. 
+To apply postgresql images and prepare the GKE cluster for ha a convenient ./helm_deploy_postgres.sh script is provided. However a summary of the tasks it performs are included below for your reference. 
 
 <mark>Simply run ./helm_deploy_postgres.sh and the below steps are automatically carried out.</mark>
 
+```
+
+
+
+
+
+```
 
