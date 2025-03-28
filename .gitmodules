@@ -1,3 +1,0 @@
-[submodule "kubernetes-engine-samples"]
-	path = kubernetes-engine-samples
-	url = https://github.com/GoogleCloudPlatform/kubernetes-engine-samples
