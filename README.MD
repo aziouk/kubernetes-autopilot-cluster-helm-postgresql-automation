@@ -19,7 +19,7 @@ chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 ```
 # Install Method 2 Installer Pipe to bash
 ```
-mkdir automation && cd automation; curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
+curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
 This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
 
