@@ -10,13 +10,15 @@ Future versions of this repository will implement only kubernetes-engine-samples
 This resource consists of two components 1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** and 2. **Helm charts** Autoinstaller for bootstrapping Terraform Built GKE Cluster in the same namespace. todo; shellscript that executes terraform build and helm autoinstaller. 
 
 #Method 1 - oneliner autoinstall
+make sure you run it in a path you wont to clone the repo to;
 ```
-wget 
+wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
 chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 ```
 #Method 2 Installer Pipe to bash
-
-``
+```
+mkdir automation && cd automation; curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
+```
 This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
 
 
