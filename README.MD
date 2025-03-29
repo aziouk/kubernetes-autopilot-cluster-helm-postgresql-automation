@@ -7,7 +7,7 @@ This github repo collection uses the reference samples from google cloud. We hav
 
 Future versions of this repository will implement only kubernetes-engine-samples subrepo, and the gke-stateful-postgres folder in the root of this repository will disappear, and reappear at <mark>kubernetes-engine-samples/databases/gke-stateful-postgres</mark> instead. This will ensure changes will be more consistent and the subrepo can be used for global changes.
 
-This resource aims to facilitate applying and destroying **Google Kubernetes Engine (GKE) cluster** and a **Helm charts** in the two components listed below. 
+This resource aims to facilitate Terraform Building and Teardown of **Google Kubernetes Engine (GKE) cluster** and **Helm charts** as a second component bootstrapping the GKE Cluster build automation of terraform. 
 
 ## 📌 Prerequisites
 
