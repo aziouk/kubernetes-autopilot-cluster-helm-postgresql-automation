@@ -122,3 +122,7 @@ Unfortunately because my account has several quota limits with the number of tim
 * Can't scale up a node pool because of a failing scheduling predicate 
 * Can't scale up due to exceeded quota 
 
+│ Error: error creating NodePool: googleapi: Error 403: Insufficient project quota to satisfy request: resource "CPUS_ALL_REGIONS": request requires '12.0' and is short '4.0'. project has a quota of '32.0' with '8.0' available. View and manage quotas at https://console.cloud.google.com/iam-admin/quotas?usage=USED&project=predictx-postgrescluster.
+
+
+<mark> Solution: build a smaller cluster of 1 node only </mark> or <mark> Increase Quota Limits with GCP </mark>
