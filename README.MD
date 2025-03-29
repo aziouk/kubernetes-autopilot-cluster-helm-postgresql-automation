@@ -113,10 +113,10 @@ The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.
 ```bash
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
-
+```
 ## Connecting to cluster-db instance
 #
-```bash
+```
 ./terraform/scripts/launch-client.sh
 
 #example output
