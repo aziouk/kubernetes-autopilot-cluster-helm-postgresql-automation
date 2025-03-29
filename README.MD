@@ -101,13 +101,15 @@ You need to check carefully the output before proceeding with helm istallation
 ```
 [root@localhost postgresql-bootstrap]# helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 ```
-The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieving the correct version specified by helm template matched chart versions in google docs.
+The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieving the correct version specified by helm template matched chart versions in google docs. The following are used instead with this version of kubernetes builds:
 
 ```
 [root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
 [root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
 [root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
 ```
+You don't need to run above. all in one helm deploy postgres script will do this for you. 
+
 The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.6.0
 
 ```bash
