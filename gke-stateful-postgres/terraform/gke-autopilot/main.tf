@@ -32,8 +32,8 @@ module "gke-db1-autopilot" {
   source                          = "../modules/beta-autopilot-private-cluster"
   project_id                      = var.project_id
   name                            = "cluster-db1"
-# this line breaks automation at present
-#  kubernetes_version              = "1.25" # Will be ignored if use "REGULAR" release_channel
+# this line breaks automation at present, latest version is 1.27 we'll try that instead of 1.25
+  kubernetes_version              = "1.27" # Will be ignored if use "REGULAR" release_channel
   region                          = "us-central1"
   regional                        = true
   zones                           = ["us-central1-a", "us-central1-b", "us-central1-c"]
@@ -57,8 +57,8 @@ module "gke-db2-autopilot" {
   source                          = "../modules/beta-autopilot-private-cluster"
   project_id                      = var.project_id
   name                            = "cluster-db2"
-# this line breaks automation at present
-#  kubernetes_version              = "1.25" # Will be ignored if use "REGULAR" release_channel
+# this line breaks automation at present, 1.27 is new latest version
+  kubernetes_version              = "1.27" # Will be ignored if use "REGULAR" release_channel
   region                          = "us-west1"
   regional                        = true
   zones                           = ["us-west1-a", "us-west1-b", "us-west1-c"]
