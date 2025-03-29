@@ -665,3 +665,26 @@ psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such
         Is the server running locally and accepting connections on that socket?
 I have no name!@pg-client:/$
 
+Something is borked on pg-client see script/client-launch.sh...
+```
+I have no name!@pg-client:/$ psql -U px-user -d predictx -a -q
+psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such file or directory
+        Is the server running locally and accepting connections on that socket?
+I have no name!@pg-client:/$
+```
+
+Inconsistency/Error with automation
+```[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl exec -it postgresql-postgresql-ha-postgresql-0 -n postgresql -- psql -U postgres -d postgres -a -q -f /tmp/scripts/create-user.sql
+Defaulted container "postgresql" out of: postgresql, metrics
+CREATE DATABASE predictx;
+psql:/tmp/scripts/create-user.sql:1: ERROR:  database "predictx" already exists
+CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
+psql:/tmp/scripts/create-user.sql:2: ERROR:  role "px-user" already exists
+GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl exec -it pg-client -n postgresql -- psql -U postgres -d postgres -a -q -f /tmp/scripts/create-user.sql
+psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such file or directory
+        Is the server running locally and accepting connections on that socket?
+command terminated with exit code 2
+```
+I will come back to this hopefully and fix it.
+
