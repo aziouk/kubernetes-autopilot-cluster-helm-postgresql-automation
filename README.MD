@@ -293,6 +293,11 @@ select COUNT(*) from tb02;
 make sure you switch the environment properly to get the correct environment or you will face errors like psql: error: local user with ID 1001 does not exist
 
 
+## Procedure for Debugging Common Build Failures 
+To obtain debug information and pull status, affiity status and various other deubgging data pertinent to resolving common errors use;
+```
+kubectl -n postgresql describe pods
+```
 
 
 
