@@ -3,8 +3,8 @@
 
 git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
 cd kubernetes-autopilot-cluster-helm-postgresql-automation
-chmod +x setenv.sh
-./setenv.sh
+#chmod +x setenv.sh
+. setenv.sh
 
 
 cd gke-stateful-postgres
