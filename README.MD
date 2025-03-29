@@ -6,12 +6,6 @@ We are using Google Cloud GKE Vertically Autoscaling Cluster, it uses the refere
 
 The scripts carefully explained eblow will allow you to perform step-by-step terraform build and teardown of **Google Kubernetes Engine (GKE) cluster** and a **PostgreSQL database** using **Terraform & Helm**. 
 
-## More Detail
-
-There are two main components at present, the first piece of the automation is <mark> terraform</mark> and the second component is the helm installer script (helm_deploy_postgres), which carries out the necessary tasks to install charts. It could be possible to integrate both processes into one terraform installer file, however it may be useful to build clusters component seperately from the image-docker automation, since their tasks are mutually exclusive. That way the first component of GKE cluster automation could be used for implementation of all (or most) clusters, and the helm installer component could be easily adapted for re-use with any other charts in GKE Cluster, which is a more modular approach to the development process and flexibility/reuse of code. This seemed like the most time efficient approach as of yet. 
-
-I do not have a lot of experience with Terraform and Helm Devops on GCP, and this my first adventure in it, but the scripts split up this way should be helpful for anyone wanting to understand, build or experiment with google GKE Clusters with and without autopilot, with and without DR, and with postgressql or any other chart. The 2 components therefore allow this script to be forked and could install theoretically any chart onto a GKE cluster for which a chart-docker-repo exists for kubernetes. Although I am less familiar with this approach the kubernetes-docker approach seems very streamlined and is uniquely useful for price optimized stateful approach to cloud app implementations. Certainly I see there is a lot to learn about GCP Kubernetes containerised abilities compared with my previous experience mainly in dedicated and openstack cloud.
-
 ## 📌 Prerequisites
 
 ### ✅ Required Software
@@ -96,16 +90,19 @@ terraform -chdir==terraform/gke-standard apply -var project_id=$PROJECT_ID
 
 ```
 ## Helm Installer for PostgreSQL
-To apply postgresql images and prepare the GKE cluster for ha a convenient ./helm_deploy_postgres.sh script is provided. However a summary of the tasks it performs are included below for your reference. 
+The Helm installer provided (helm_deploy_postgres.sh) will automate the docker image pull and installation to the GKE Cluster using the setenv project variables, and is integrated with the google cloud tool. The additional requirement is a local docker installation is required, even though your pushing to remote, you need it on the controlling machine to communicate with the instances in gcloud. I had some issues with imagepulls but it seems its because I am over the quota of my free account after looking into it.
 
-<mark>Simply run ./helm_deploy_postgres.sh and the below steps are automatically carried out.</mark>
+However a summary of the tasks it performs are included below for your reference. 
+
 
 ```bash
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
-
-
-
-
 ```
+
+## More Detail
+
+There are two main components at present, the first piece of the automation is <mark> terraform</mark> and the second component is the helm installer script (helm_deploy_postgres), which carries out the necessary tasks to install charts. It could be possible to integrate both processes into one terraform installer file, however it may be useful to build clusters component seperately from the image-docker automation, since their tasks are mutually exclusive. That way the first component of GKE cluster automation could be used for implementation of all (or most) clusters, and the helm installer component could be easily adapted for re-use with any other charts in GKE Cluster, which is a more modular approach to the development process and flexibility/reuse of code. This seemed like the most time efficient approach as of yet.
+
+I do not have a lot of experience with Terraform and Helm Devops on GCP, and this my first adventure in it, but the scripts split up this way should be helpful for anyone wanting to understand, build or experiment with google GKE Clusters with and without autopilot, with and without DR, and with postgressql or any other chart. The 2 components therefore allow this script to be forked and could install theoretically any chart onto a GKE cluster for which a chart-docker-repo exists for kubernetes. Although I am less familiar with this approach the kubernetes-docker approach seems very streamlined and is uniquely useful for price optimized stateful approach to cloud app implementations. Certainly I see there is a lot to learn about GCP Kubernetes containerised abilities compared with my previous experience mainly in dedicated and openstack cloud.
 
