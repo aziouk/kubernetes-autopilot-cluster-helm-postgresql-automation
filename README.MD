@@ -1,9 +1,12 @@
 # 🚀 Deploy PostgreSQL on GKE with Terraform
 
+##TLDR
 This package provides instructions for creating a multi region redundant stateful implementation of postgresql thru Helm, with and without autopilot, with DR and without DR backup.
 We are using Google Cloud GKE Vertically Autoscaling Cluster, it uses the reference samples and best practice steps provided by google cloud docs See [Here](https://github.com/aziouk/kubernetes-engine-samples) for more and a link to the original GoogleCloudPlatform samples repo.
 
 The scripts carefully explained eblow will allow you to perform step-by-step terraform build and teardown of **Google Kubernetes Engine (GKE) cluster** and a **PostgreSQL database** using **Terraform & Helm**. 
+
+##More Detail
 
 There are two main components at present, the first piece of the automation is <mark> terraform</mark> and the second component is the helm installer script (helm_deploy_postgres), which carries out the necessary tasks to install charts. It could be possible to integrate both processes into one terraform installer file, however it may be useful to build clusters component seperately from the image-docker automation, since their tasks are mutually exclusive. That way the first component of GKE cluster automation could be used for implementation of all (or most) clusters, and the helm installer component could be easily adapted for re-use with any other charts in GKE Cluster, which is a more modular approach to the development process and flexibility/reuse of code. This seemed like the most time efficient approach as of yet. 
 
