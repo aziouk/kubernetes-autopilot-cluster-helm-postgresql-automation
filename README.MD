@@ -1,4 +1,4 @@
-# 🚀 Deploy PostgreSQL on GKE with Terraform
+# 🚀 Deploy PostgreSQL on GKE with Terraform 
 
 ## TLDR
 This package provides instructions for creating a multi region redundant stateful implementation of postgresql thru Helm, with and without autopilot, with DR and without DR backup.
