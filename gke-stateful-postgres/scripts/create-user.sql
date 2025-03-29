@@ -1,0 +1,3 @@
+CREATE DATABASE predictx
+CREATE USER px-user WITH ENCRYPTED PASSWORD 'px-user';
+GRANT ALL PRIVILEGES ON predictx TO px-user;
