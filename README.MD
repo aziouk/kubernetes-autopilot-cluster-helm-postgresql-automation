@@ -166,6 +166,38 @@ gcloud monitoring dashboards create \
 Created [0cc3adf6-2082-4ddc-a8b9-9b6c63521817].
 Created [f36667d9-1d73-45fe-84de-383774c07d55].
 ```
+The above script adds monitoring to your google dashboard under "Custom" Filter, Named **GKE Postgresql Cluster** and **PostgresOverview** respectively
+
+## Configuring Alerts
+It is also possible to configure email alerts with the service via terraform, this can be easily done as shown below;
+
+```bash
+cd monitoring/alerting/
+terraform init
+terraform plan -var project_id=$PROJECT_ID -var email_address=$EMAIL
+terraform apply -var project_id=$PROJECT_ID -var email_address=$EMAIL
+``` 
+
+## Testing Alerts
+
+If your using critical alerts, important to test them. This can be done easily by reattaching to the host and generating large tuple sets
+```
+[root@localhost terraform]# cd ../../../
+[root@localhost gke-stateful-postgres]# kubectl exec -it --namespace postgresql pg-client -- /bin/bash
+I have no name!@pg-client:/$ pgbench -i -h $HOST_PGPOOL -U postgres -s 200 postgres
+dropping old tables...
+creating tables...
+generating data (client-side)...
+6500000 of 20000000 tuples (32%) done (elapsed 126.58 s, remaining 262.89 s)
+```
+
+## Retrieving the Kubectl Raw
+This allow you to check whether you will get the alert and its triggering profile is right etc. That is about it for now. Except that the kubectrl configuration can be obtained in raw format like
+```
+# will provide kubeconfig overview for authentication by others.
+# warning command will give away your credentials
+kubectl config view --raw
+```
 
 
 ## 🔐 Using Google Secret Manager (GSM)
