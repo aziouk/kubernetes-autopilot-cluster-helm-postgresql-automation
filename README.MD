@@ -199,6 +199,24 @@ This allow you to check whether you will get the alert and its triggering profil
 kubectl config view --raw
 ```
 
+# Exporting/Transporting Kubectl config Securely
+I was asked to provide kubectl config at the end of carrying out this task, so I put together small script to encrypt it via PGP symmetric encryption. Which can be easily decrypted from this repo and reused by staff who have received my email with the password.
+
+## Encrypting Kubectl config
+```
+gpg --batch -c --passphrase somepassphrasehere export.secret
+```
+- Where export.secret is the plaintext credentials
+
+## Decrypting Kubectl config in Gpg form
+```
+gpg --output decrypted.export.secret.plaintext --decrypt export.secret.gpg
+```
+
+(Would naturally not do this in real prod env). You will also be asked for the passphrase which I will send seperately.
+
+
+
 
 ## 🔐 Using Google Secret Manager (GSM)
 
