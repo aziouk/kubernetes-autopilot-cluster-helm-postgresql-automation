@@ -104,8 +104,7 @@ chmod +x helm_deploy_postgres.sh
 ```
 
 ## Credential Management in CSM or GCS Buckets
-#
-## 🔐 Recommended Approach: Use Google Secret Manager (GSM)
+## 🔐 Using Google Secret Manager (GSM)
 
 Using GSM is more secure than storing secrets in a GCS bucket because:
 
@@ -125,6 +124,29 @@ Before running Terraform, enable the Secret Manager API:
 gcloud services enable secretmanager.googleapis.com
 ```
 
+## 🔄 Alternative: Store Metadata in a GCS Bucket
+
+If you prefer storing metadata in a GCS bucket (⚠️ less secure than GSM), modify Terraform to save the password into a file and upload it:
+
+```
+# Create a GCS bucket for storing metadata
+resource "google_storage_bucket" "pg_metadata" {
+  name          = "predictx-db-metadata"
+  location      = var.region
+  force_destroy = true
+}
+
+# Store PostgreSQL credentials in the GCS bucket
+resource "google_storage_bucket_object" "pg_password_file" {
+  name   = "postgres-password.txt"
+  bucket = google_storage_bucket.pg_metadata.name
+  content = <<EOT
+DB_NAME=predictx
+DB_USER=px-user
+DB_PASSWORD=${random_password.pg_password.result}
+EOT
+}
+```
 ## Summary
 
 There are two main components at present, the first piece of the automation is <mark> Google Cloud GKE Cluster terraform build component</mark> and the second the <mark>kube-credentials-handler-docker-image-deploy-chart</mark> installer component (helm_deploy_postgres.sh), which carries out the necessary tasks to install charts. It is possible to integrate both processes into one terraform installer file if desired, however it may be also potentially useful to build cluster components seperately from the image-docker automation, since their tasks are mutually exclusive, this way code can be more easily recycled for further utility benefit. That way the first component of GKE cluster automation could be used, adapted, templated for implementation of all (or most) clusters, and the helm installer component could be easily adapted for re-use with any other charts for GKE Cluster. This approach seemed like the most time efficient approach as of yet, without unnecessarily reinventing wheel or causing arbitrary restrictions with the implementation of the two components.
