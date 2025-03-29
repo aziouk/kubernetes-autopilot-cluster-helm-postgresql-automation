@@ -126,19 +126,19 @@ waiting for the Pod to be ready
 Copying script files to the target Pod pg-client ...
 Pod: pg-client is healthy
 
-# start a shell session for testing
+#start a shell session for testing
 kubectl exec -it pg-client -n postgresql -- /bin/bash
 ```
 
 ## Populating, Testing/Benchmarking Database
 #
 ```bash
-# input generated db for testing
+#input generated db for testing
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/generate-db.sql
-# test counting rows
+#test counting rows
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
 
-# test performance with pgbench
+#test performance with pgbench
 export DB=postgres
 pgbench -i -h $HOST_PGPOOL -U postgres $DB -s 50
 #example output
