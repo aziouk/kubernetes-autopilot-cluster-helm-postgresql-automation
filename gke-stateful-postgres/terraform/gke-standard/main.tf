@@ -58,10 +58,10 @@ module "gke-db1" {
     "autoscaling_profile": "OPTIMIZE_UTILIZATION",
     "enabled" : true,
     "gpu_resources" : [],
-    "min_cpu_cores" : 4,
-    "min_memory_gb" : 12,
-    "max_cpu_cores" : 12,
-    "max_memory_gb" : 24,
+    "min_cpu_cores" : 1,
+    "min_memory_gb" : 1,
+    "max_cpu_cores" : 4,
+    "max_memory_gb" : 4,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
@@ -71,7 +71,7 @@ module "gke-db1" {
       name            = "pool-sys"
       autoscaling     = true
       min_count       = 1
-      max_count       = 2
+      max_count       = 3
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-4"
@@ -139,10 +139,10 @@ module "gke-db2" {
     "autoscaling_profile": "OPTIMIZE_UTILIZATION",
     "enabled" : true,
     "gpu_resources" : [],
-    "min_cpu_cores" : 4,
-    "min_memory_gb" : 12,
-    "max_cpu_cores" : 12,
-    "max_memory_gb" : 24,
+    "min_cpu_cores" : 1,
+    "min_memory_gb" : 1,
+    "max_cpu_cores" : 4,
+    "max_memory_gb" : 4,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
@@ -151,7 +151,7 @@ module "gke-db2" {
       name            = "pool-sys"
       autoscaling     = true
       min_count       = 1
-      max_count       = 2
+      max_count       = 3
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-4"
