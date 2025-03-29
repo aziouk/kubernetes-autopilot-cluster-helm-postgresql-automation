@@ -210,7 +210,7 @@ gpg --batch -c --passphrase somepassphrasehere export.secret
 ```
 - Where export.secret is the plaintext credentials
 
-## Decrypting Kubectl config in Gpg form
+## Decrypting Kubectl config
 ```
 gpg --output decrypted.export.secret.plaintext --decrypt export.secret.gpg
 ```
