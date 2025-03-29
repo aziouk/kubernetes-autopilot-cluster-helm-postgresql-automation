@@ -252,9 +252,11 @@ postgres=# \du
  repmgr    | Superuser, Create DB, Replication
 
 postgres=#
-
-
-
+[root@localhost scripts]# kubectl exec -it postgresql-postgresql-ha-postgresql-0 -n postgresql -- /bin/bash
+Defaulted container "postgresql" out of: postgresql, metrics
+I have no name!@postgresql-postgresql-ha-postgresql-0:/$ psql -U px-user -d predictx -a -q
+predictx=> quit
+```
 
 #test performance with pgbench
 export DB=postgres
