@@ -111,4 +111,14 @@ There are two main components at present, the first piece of the automation is <
 
 I do not have a lot of experience with Terraform and Helm Devops on GCP, and this my first adventure in it, but the scripts split up this way should be helpful for anyone wanting to understand, build or experiment with google GKE Clusters with and without autopilot, with and without DR, and with postgressql or any other chart. The 2 components therefore allow this script to be forked and could install theoretically any chart onto a GKE cluster for which a chart-docker-repo exists for kubernetes. Although I am less familiar with this approach the kubernetes-docker approach seems very streamlined and is uniquely useful for price optimized stateful approach to cloud app implementations. Certainly I see there is a lot to learn about GCP Kubernetes containerised abilities compared with my previous experience mainly in dedicated and openstack cloud.
 
+## Common Errors
+
+Unfortunately because my account has several quota limits with the number of times I can spin up and down automation. I reached the limit of my quota pretty fast. Here are common errors that you will see, that are *not* a result of the automation failing, but potential barriers from untainted builds with the terraform/helm automation included. This seems especially relevant to the ha scaling quota specifically. See below for common issues;
+
+* Pod is blocking scale down because it doesn't have enough pod disruption budget (PDB) 
+* Pod is blocking scale down because its controller can't be found. 
+* Can't scale up because node auto-provisioning can't provision a node pool for the pod if it would exceed resource limits. 
+* Can't scale up because node auto-provisioning can't provision a node pool for a pod with failing predicates 
+* Can't scale up a node pool because of a failing scheduling predicate 
+* Can't scale up due to exceeded quota 
 
