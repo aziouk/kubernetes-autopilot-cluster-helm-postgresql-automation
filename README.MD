@@ -183,6 +183,79 @@ I have no name!@pg-client:/$ quit
 bash: quit: command not found
 ```
 
+This will not be permanent, to make it permanent we need to update the pg_hba filee, lets find where it is located:
+bitnami runs as a non root user which makes this problematic.
+```
+I have no name!@pg-client:/$ kubectl exec -it pg-client -n postgresql -- /bin/bash
+I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
+postgres=# SHOW hba_file;
+                 hba_file
+------------------------------------------
+ /opt/bitnami/postgresql/conf/pg_hba.conf
+(1 row)
+
+```
+# Troubleshooting password not updating
+updating a single node won't do, you will need to assign it directly
+
+```
+I have no name!@postgresql-postgresql-ha-postgresql-0:/$ kubectl exec -it postgresql-postgresql-ha-postgresql-0 -n postgresql -- psql -U postgres
+bash: kubectl: command not found
+I have no name!@postgresql-postgresql-ha-postgresql-0:/$ exit
+exit
+command terminated with exit code 127
+[root@localhost scripts]# kubectl exec -it postgresql-postgresql-ha-postgresql-0 -n postgresql -- /bin/bash
+Defaulted container "postgresql" out of: postgresql, metrics
+I have no name!@postgresql-postgresql-ha-postgresql-0:/$ psql -U postgres
+psql (16.6)
+Type "help" for help.
+
+postgres=# whoami
+postgres-# id
+postgres-# su - postgres
+postgres-# psql
+postgres-# ls -al /tmp/scripts
+postgres-# exit
+Use \q to quit.
+postgres-# CREATE DATABASE predictx;
+ERROR:  syntax error at or near "whoami"
+LINE 1: whoami
+        ^
+postgres=# CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
+ERROR:  role "px-user" already exists
+postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+GRANT
+postgres=#
+postgres=# CREATE DATABASE predictx;
+ERROR:  database "predictx" already exists
+postgres=# CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
+ERROR:  role "px-user" already exists
+postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+GRANT
+postgres=#
+postgres=# DROP DATABASE predictx;
+DROP DATABASE
+postgres=# CREATE DATABASE predictx;
+CREATE DATABASE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+GRANT
+postgres=# ALTER USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
+ALTER ROLE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+GRANT
+postgres=# \du
+                             List of roles
+ Role name |                         Attributes
+-----------+------------------------------------------------------------
+ postgres  | Superuser, Create role, Create DB, Replication, Bypass RLS
+ px-user   |
+ repmgr    | Superuser, Create DB, Replication
+
+postgres=#
+
+
+
+
 #test performance with pgbench
 export DB=postgres
 pgbench -i -h $HOST_PGPOOL -U postgres $DB -s 50
