@@ -90,7 +90,6 @@ terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgres
 terraform -chdir=terraform/gke-standard init
 terraform -chdir=terraform/gke-standard plan -var project_id=$PROJECT_ID
 terraform -chdir==terraform/gke-standard apply -var project_id=$PROJECT_ID
-
 ```
 ## Helm Installer for PostgreSQL
 The Helm installer provided (helm_deploy_postgres.sh) will automate the docker image pull and installation to the GKE Cluster using the setenv project variables, and is integrated with the google cloud tool. The additional requirement is a local docker installation is required, even though your pushing to remote, you need it on the controlling machine to communicate with the instances in gcloud. I had some issues with imagepulls but it seems its because I am over the quota of my free account after looking into it.
@@ -99,7 +98,7 @@ However a summary of the tasks it performs are included below for your reference
 
 ##  1️⃣ IMPORTANT Google docs are outdated for Helm Versions 
 You need to check carefully the output before proceeding with helm istallation
-```bash
+```
 [root@localhost postgresql-bootstrap]# helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 ```
 The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieved
