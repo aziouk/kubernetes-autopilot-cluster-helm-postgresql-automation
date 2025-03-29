@@ -103,7 +103,6 @@ chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
 ```
 
-## Credential Management in CSM or GCS Buckets
 ## 🔐 Using Google Secret Manager (GSM)
 
 Using GSM is more secure than storing secrets in a GCS bucket because:
@@ -111,8 +110,6 @@ Using GSM is more secure than storing secrets in a GCS bucket because:
 - 🔒 It encrypts secrets by default.
 - 🛂 It provides fine-grained access control (IAM permissions).
 - 🔄 You can version secrets and rotate credentials easily.
-
----
 
 ## 🔧 Step 1: Modify Terraform to Store Secrets in GSM
 
