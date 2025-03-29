@@ -18,7 +18,7 @@ wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-
 cat autoinstaller.sh
 chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 ```
-# Auth Install - Pipe to Bash Oneliner (DANGEROUS)
+# Auto Install - Pipe to Bash Oneliner (DANGEROUS)
 ```
 curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
