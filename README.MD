@@ -103,6 +103,28 @@ chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
 ```
 
+## Credential Management in CSM or GCS Buckets
+#
+## 🔐 Recommended Approach: Use Google Secret Manager (GSM)
+
+Using GSM is more secure than storing secrets in a GCS bucket because:
+
+- 🔒 It encrypts secrets by default.
+- 🛂 It provides fine-grained access control (IAM permissions).
+- 🔄 You can version secrets and rotate credentials easily.
+
+---
+
+## 🔧 Step 1: Modify Terraform to Store Secrets in GSM
+
+### 1️⃣ Enable the Secret Manager API  
+
+Before running Terraform, enable the Secret Manager API:  
+
+```bash
+gcloud services enable secretmanager.googleapis.com
+```
+
 ## Summary
 
 There are two main components at present, the first piece of the automation is <mark> Google Cloud GKE Cluster terraform build component</mark> and the second the <mark>kube-credentials-handler-docker-image-deploy-chart</mark> installer component (helm_deploy_postgres.sh), which carries out the necessary tasks to install charts. It is possible to integrate both processes into one terraform installer file if desired, however it may be also potentially useful to build cluster components seperately from the image-docker automation, since their tasks are mutually exclusive, this way code can be more easily recycled for further utility benefit. That way the first component of GKE cluster automation could be used, adapted, templated for implementation of all (or most) clusters, and the helm installer component could be easily adapted for re-use with any other charts for GKE Cluster. This approach seemed like the most time efficient approach as of yet, without unnecessarily reinventing wheel or causing arbitrary restrictions with the implementation of the two components.

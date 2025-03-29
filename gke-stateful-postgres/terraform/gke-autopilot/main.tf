@@ -42,7 +42,7 @@ module "gke-db1-autopilot" {
   ip_range_pods                   = "ip-range-pods-db1"
   ip_range_services               = "ip-range-svc-db1"
   horizontal_pod_autoscaling      = true
-  release_channel                 = "REGULAR" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
+  release_channel                 = "RAPID" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
   enable_vertical_pod_autoscaling = true
   enable_private_endpoint         = false
   enable_private_nodes            = true
@@ -67,7 +67,7 @@ module "gke-db2-autopilot" {
   ip_range_pods                   = "ip-range-pods-db2"
   ip_range_services               = "ip-range-svc-db2"
   horizontal_pod_autoscaling      = true
-  release_channel                 = "REGULAR" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
+  release_channel                 = "RAPID" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
   enable_vertical_pod_autoscaling = true
   enable_private_endpoint         = false
   enable_private_nodes            = true
