@@ -17,6 +17,7 @@ gcloud auth configure-docker us-docker.pkg.dev
 #./scripts/gcr.sh bitnami/postgres-exporter 0.11.1-debian-11-r27
 #./scripts/gcr.sh bitnami/pgpool 4.3.3-debian-11-r28
 
+# these often need to be changed for builds to succeed
 ./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
 ./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
 ./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
