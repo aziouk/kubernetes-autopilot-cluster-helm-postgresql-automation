@@ -52,10 +52,10 @@ spec:
             - "while true; do sleep 3600; done"
         resources:
           limits:
-            cpu: "100m"
+            cpu: "500m"
             ephemeral-storage: "10Mi"
             memory: "0.5Gi"
           requests:
-            cpu: "500m"
+            cpu: "100m"
             ephemeral-storage: "10Mi"
             memory: "0.5Gi"
