@@ -33,7 +33,7 @@ module "gke-db1-autopilot" {
   project_id                      = var.project_id
   name                            = "cluster-db1"
 # this line breaks automation at present, latest version is 1.27 we'll try that instead of 1.25
-  kubernetes_version              = "1.27" # Will be ignored if use "REGULAR" release_channel
+#  kubernetes_version              = "1.27" # Will be ignored if use "REGULAR" release_channel
   region                          = "us-central1"
   regional                        = true
   zones                           = ["us-central1-a", "us-central1-b", "us-central1-c"]
@@ -42,14 +42,14 @@ module "gke-db1-autopilot" {
   ip_range_pods                   = "ip-range-pods-db1"
   ip_range_services               = "ip-range-svc-db1"
   horizontal_pod_autoscaling      = true
-  release_channel                 = "RAPID" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
+  release_channel                 = "REGULAR" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
   enable_vertical_pod_autoscaling = true
   enable_private_endpoint         = false
   enable_private_nodes            = true
   master_ipv4_cidr_block          = "172.16.0.0/28"
   create_service_account          = false
   # ensure destroy can be ran without intervention, apparently not allowed here
-  deletion_protection 		  = false
+  #deletion_protection 		  = false
 }
 # [END gke_autopilot_private_regional_primary_cluster]
 # [START gke_autopilot_private_regional_backup_cluster]
@@ -67,7 +67,7 @@ module "gke-db2-autopilot" {
   ip_range_pods                   = "ip-range-pods-db2"
   ip_range_services               = "ip-range-svc-db2"
   horizontal_pod_autoscaling      = true
-  release_channel                 = "RAPID" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
+  release_channel                 = "REGULAR" # Default version is 1.22 in REGULAR. GMP on Autopilot requires V1.25 via var.kubernetes_version
   enable_vertical_pod_autoscaling = true
   enable_private_endpoint         = false
   enable_private_nodes            = true
