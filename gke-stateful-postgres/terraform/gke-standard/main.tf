@@ -53,14 +53,15 @@ module "gke-db1" {
   enable_private_nodes     = true
   master_ipv4_cidr_block   = "172.16.0.0/28"
   network_policy           = true
+#  deletion_protection	   = false
   cluster_autoscaling = {
     "autoscaling_profile": "OPTIMIZE_UTILIZATION",
     "enabled" : true,
     "gpu_resources" : [],
-    "min_cpu_cores" : 36,
-    "min_memory_gb" : 144,
-    "max_cpu_cores" : 48,
-    "max_memory_gb" : 192,
+    "min_cpu_cores" : 4,
+    "min_memory_gb" : 12,
+    "max_cpu_cores" : 12,
+    "max_memory_gb" : 64,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
@@ -70,7 +71,7 @@ module "gke-db1" {
       name            = "pool-sys"
       autoscaling     = true
       min_count       = 1
-      max_count       = 3
+      max_count       = 2
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-4"
@@ -133,14 +134,15 @@ module "gke-db2" {
   enable_private_nodes     = true
   master_ipv4_cidr_block   = "172.16.0.16/28"
   network_policy           = true
+#  deletion_protection	   = false
   cluster_autoscaling = {
     "autoscaling_profile": "OPTIMIZE_UTILIZATION",
     "enabled" : true,
     "gpu_resources" : [],
-    "min_cpu_cores" : 10,
-    "min_memory_gb" : 144,
-    "max_cpu_cores" : 48,
-    "max_memory_gb" : 192,
+    "min_cpu_cores" : 4,
+    "min_memory_gb" : 12,
+    "max_cpu_cores" : 12,
+    "max_memory_gb" : 64,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
@@ -149,7 +151,7 @@ module "gke-db2" {
       name            = "pool-sys"
       autoscaling     = true
       min_count       = 1
-      max_count       = 3
+      max_count       = 2
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-4"
