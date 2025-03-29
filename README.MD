@@ -151,6 +151,22 @@ creating primary keys...
 done in 90.44 s (drop tables 0.00 s, create tables 0.02 s, client-side generate 76.88 s, vacuum 3.16 s, primary keys 10.37 s).
 
 ```
+## Configuring Monitoring Service Dashboard
+
+```bash
+[root@localhost gke-stateful-postgres]# echo $PROJECT_ID
+predictx-postgrescluster
+[root@localhost gke-stateful-postgres]# cd monitoring/
+[root@localhost monitoring]# gcloud monitoring dashboards create \
+        --config-from-file=dashboard/postgresql-overview.json \
+        --project=$PROJECT_ID
+gcloud monitoring dashboards create \
+        --config-from-file dashboard/gke-postgresql.json \
+        --project $PROJECT_ID
+Created [0cc3adf6-2082-4ddc-a8b9-9b6c63521817].
+Created [f36667d9-1d73-45fe-84de-383774c07d55].
+```
+
 
 ## 🔐 Using Google Secret Manager (GSM)
 
