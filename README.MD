@@ -52,7 +52,7 @@ gcloud services enable \
   secretmanager.googleapis.com  # If using Google Secret Manager
 ```
 
-### **1️⃣ Installation/Setup & Usage **
+### **1️⃣ Running the Automation Manually **
 
 ```
 git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
