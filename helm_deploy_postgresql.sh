@@ -2,8 +2,8 @@ echo "BEGIN>> Automation for Helm postgresql chart for GKE Cluster Autopilot"
 
 
 # set environment
-chmod +x setenv.sh
-./setenv.sh
+#chmod +x setenv.sh
+. setenv.sh
 
 # enter into automation root
 cd gke-stateful-postgres 

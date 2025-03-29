@@ -156,6 +156,33 @@ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/generate-db.sql
 #test counting rows
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
 
+## Create Database, with credentials to named postgresdb
+You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update the database. 
+
+```
+[root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
+
+Launching Pod pg-client in the namespace postgresql ...
+Error from server (AlreadyExists): pods "pg-client" already exists
+waiting for the Pod to be ready
+Copying script files to the target Pod pg-client ...
+Pod: pg-client is healthy
+
+[root@localhost gke-stateful-postgres]# kubectl exec -it pg-client -n postgresql -- /bin/bash
+I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql
+CREATE DATABASE predictx;
+CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
+GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql
+CREATE DATABASE predictx;
+psql:/tmp/scripts/create-user.sql:1: ERROR:  database "predictx" already exists
+CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
+psql:/tmp/scripts/create-user.sql:2: ERROR:  role "px-user" already exists
+GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+I have no name!@pg-client:/$ quit
+bash: quit: command not found
+```
+
 #test performance with pgbench
 export DB=postgres
 pgbench -i -h $HOST_PGPOOL -U postgres $DB -s 50
