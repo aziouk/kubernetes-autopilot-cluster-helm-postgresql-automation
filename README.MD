@@ -216,6 +216,83 @@ gpg --output decrypted.export.secret.plaintext --decrypt export.secret.gpg
 (Would naturally not do this in real prod env). You will also be asked for the passphrase which I will send seperately.
 
 
+## Simulating Cluster Failure and Recovery
+Open a new cloud shell sessions and cofigure <mark> kubectl </mark> commandline access to primary db.
+```
+gcloud container clusters get-credentials $SOURCE_CLUSTER \
+--region=$REGION --project=$PROJECT_ID
+```
+Open a screen if in a single terminal to capture postgresql events emitted by kubernetes
+```
+screen -S emissions kubectl get events -n postgresql --field-selector=involvedObject.name=postgresql-postgresql-ha-postgresql-0 --watch
+```
+ctrl a+d to detatch from emission window and attach your session to the <mark> database container </mark>
+```
+kubectl exec -it -n $NAMESPACE postgresql-postgresql-ha-postgresql-0 -c postgresql -- /bin/bash
+```
+
+Simulate a service failure
+```
+export ENTRY='/opt/bitnami/scripts/postgresql-repmgr/entrypoint.sh'
+export RCONF='/opt/bitnami/repmgr/conf/repmgr.conf'
+$ENTRY repmgr -f $RCONF node service --action=stop --checkpoint
+```
+output should look like;
+```
+postgresql-repmgr 11:58:22.87 INFO  ==>
+
+NOTICE: issuing CHECKPOINT on node "postgresql-postgresql-ha-postgresql-0" (ID: 1000)
+DETAIL: executing server command "/opt/bitnami/postgresql/bin/pg_ctl -o "--config-file="/opt/bitnami/postgresql/conf/postgresql.conf" --external_pid_file="/opt/bitnami/postgresql/tmp/postgresql.pid" --hba_file="/opt/bitnami/postgresql/conf/pg_hba.conf"" -D '/bitnami/postgresql/data' -W -m fast stop"
+I have no name!@postgresql-postgresql-ha-postgresql-0:/$ command terminated with exit code 137
+```
+
+Attach to the events/emissions window to verify the unhealthy failure/simulation and check that it is properly detected and restart/replaced by pods liveness readiness probes.
+```
+screen -x emissions
+```
+output should look like:
+```
+0s          Normal    Started     pod/postgresql-postgresql-ha-postgresql-0   Started container postgresql
+0s          Warning   Unhealthy   pod/postgresql-postgresql-ha-postgresql-0   Liveness probe failed: psql: error: connection to server at "127.0.0.1", port 5432 failed: Connection refused...
+0s          Warning   Unhealthy   pod/postgresql-postgresql-ha-postgresql-0   Readiness probe failed: psql: error: connection to server at "127.0.0.1", port 5432 failed: Connection refused...
+0s          Warning   Unhealthy   pod/postgresql-postgresql-ha-postgresql-0   Liveness probe errored: rpc error: code = Unknown desc = failed to exec in container: container is in CONTAINER_EXITED state
+0s          Warning   BackOff     pod/postgresql-postgresql-ha-postgresql-0   Back-off restarting failed container postgresql in pod postgresql-postgresql-ha-postgresql-0_postgresql(d8bbc667-fa96-4c82-888f-78928bed8d65)
+0s          Warning   BackOff     pod/postgresql-postgresql-ha-postgresql-0   Back-off restarting failed container postgresql in pod postgresql-postgresql-ha-postgresql-0_postgresql(d8bbc667-fa96-4c82-888f-78928bed8d65)
+0s          Normal    Pulled      pod/postgresql-postgresql-ha-postgresql-0   Container image "us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgresql-repmgr:16.6.0-debian-12-r3" already present on machine
+0s          Normal    Created     pod/postgresql-postgresql-ha-postgresql-0   Created container: postgresql
+0s          Normal    Started     pod/postgresql-postgresql-ha-postgresql-0   Started container postgresql
+```
+verify the database works after simulating restart/auto recovery
+
+```
+[root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
+
+Launching Pod pg-client in the namespace postgresql ...
+Error from server (AlreadyExists): pods "pg-client" already exists
+waiting for the Pod to be ready
+Copying script files to the target Pod pg-client ...
+Pod: pg-client is healthy
+
+[root@localhost gke-stateful-postgres]# kubectl exec -it pg-client -n postgresql -- /bin/bash
+I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
+\c gke_test_zonal;
+select COUNT(*) from tb01;
+ count
+--------
+ 300000
+(1 row)
+
+select COUNT(*) from tb02;
+ count
+--------
+ 300000
+(1 row)
+```
+make sure you switch the environment properly to get the correct environment or you will face errors like psql: error: local user with ID 1001 does not exist
+
+
+
+
 
 
 ## 🔐 Using Google Secret Manager (GSM)
