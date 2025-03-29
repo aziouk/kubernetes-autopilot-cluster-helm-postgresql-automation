@@ -23,7 +23,7 @@ chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
 This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
-
+<mark> Autoinstaller supports gke-standard cluster via terraform and postgresql ha cluster via helm templating </mark>
 
 ## 📌 Prerequisites
 
@@ -213,6 +213,30 @@ postgres=# \du
 
 postgres=# exit
 ```
+
+# Check Database online
+```
+kubectl exec -it pg-client -n postgresql -- /bin/bash -c "psql -h \$HOST_PGPOOL -U postgres -c 'SELECT version();' -a -q && echo 'PostgreSQL is running fine' || echo 'PostgreSQL is not running'"
+SELECT version();
+                                          version
+-------------------------------------------------------------------------------------------
+ PostgreSQL 16.6 on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+(1 row)
+
+PostgreSQL is running fine
+```
+
+Make sure that your $NAMESPACE and $PROJECT_ID env variable is defined too.
+
+# Check User and Data is added
+```
+kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
+psql -h \$HOST_PGPOOL -U postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='px-user';\" && \
+psql -h \$HOST_PGPOOL -U px-user -d predictx -c 'SELECT 1;' -a -q && \
+echo 'px-user exists and has access to the predictx database' || \
+echo 'px-user does not exist or lacks access to the predictx database'"
+```
+
 
 # Resolved (will remove later)
 ```
