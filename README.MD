@@ -194,8 +194,27 @@ postgres=# SHOW hba_file;
 
 ```
 # Troubleshooting password not updating
-updating a single node won't do, you will need to assign it directly
+Found cause: bad namespace export was lost, now fixed.
 
+Solution is
+```
+[root@localhost scripts]# kubectl exec -it pg-client -n postgresql -- /bin/bash
+I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
+postgres=# \qu
+invalid command \qu
+Try \? for help.
+postgres=# \du
+                                   List of roles
+ Role name |                         Attributes                         | Member of
+-----------+------------------------------------------------------------+-----------
+ postgres  | Superuser, Create role, Create DB, Replication, Bypass RLS | {}
+ px-user   |                                                            | {}
+ repmgr    | Superuser, Create DB, Replication                          | {}
+
+postgres=# exit
+```
+
+# Resolved (will remove later)
 ```
 I have no name!@postgresql-postgresql-ha-postgresql-0:/$ kubectl exec -it postgresql-postgresql-ha-postgresql-0 -n postgresql -- psql -U postgres
 bash: kubectl: command not found
@@ -296,6 +315,7 @@ Created [0cc3adf6-2082-4ddc-a8b9-9b6c63521817].
 Created [f36667d9-1d73-45fe-84de-383774c07d55].
 ```
 The above script adds monitoring to your google dashboard under "Custom" Filter, Named **GKE Postgresql Cluster** and **PostgresOverview** respectively
+
 
 ## Configuring Alerts
 It is also possible to configure email alerts with the service via terraform, this can be easily done as shown below;
