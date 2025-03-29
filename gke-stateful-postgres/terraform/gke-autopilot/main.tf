@@ -74,6 +74,6 @@ module "gke-db2-autopilot" {
   master_ipv4_cidr_block          = "172.16.0.16/28"
   create_service_account          = false
   # ensure destroy can be ran without intervention, apparently not allowed hmmm
-  #deletion_protection             = false
+   #deletion_protection             = false
 }
 # [END gke_autopilot_private_regional_backup_cluster]
