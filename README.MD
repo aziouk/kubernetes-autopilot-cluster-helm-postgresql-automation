@@ -7,7 +7,10 @@ This github repo collection uses the reference samples from google cloud. We hav
 
 Future versions of this repository will implement only kubernetes-engine-samples subrepo, and the gke-stateful-postgres folder in the root of this repository will disappear, and reappear at <mark>kubernetes-engine-samples/databases/gke-stateful-postgres</mark> instead. This will ensure changes will be more consistent and the subrepo can be used for global changes.
 
-This resource consists of two components 1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** and 2. **Helm charts** for bootstrapping Terraform Built GKE Cluster in the same namespace.
+This resource consists of two components
+*1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** 
+*2. **Helm charts** Autoinstaller for bootstrapping Terraform Built GKE Cluster in the same namespace.
+TODO: an all in one shellscript or terraform script that executes both component 1 and part 2.
 
 ## 📌 Prerequisites
 
