@@ -642,4 +642,26 @@ The above script does several things.
 * Problems that need addressing: firewall needs extra ports 5432 added. Password finicky and not always retrieved. Sometimes pull fail due to quota which made troubleshooting this difficult, and time consuming.
 * Insecure usage of source_ranges and oauth_scopes variable, not required, some of the permission concerns were difficult to address without better knowledge of google cloud.
 
+#Tasks I could use some help/tips/advice on
+# It seems that there could be breakage on pg-client when master is updated. likely due to improper syncing.
+#[root@localhost scripts]# ./launch-client.sh
+
+Launching Pod pg-client in the namespace postgresql ...
+Error from server (AlreadyExists): pods "pg-client" already exists
+waiting for the Pod to be ready
+Copying script files to the target Pod pg-client ...
+error: scripts doesn't exist in local filesystem
+Pod: pg-client is healthy
+
+[root@localhost scripts]# kubectl exec -it pg-client -n postgresql -- psql -U px-user -d predictx -a -q
+psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such file or directory
+        Is the server running locally and accepting connections on that socket?
+command terminated with exit code 2
+[root@localhost scripts]# kubectl exec -it pg-client -n postgresql
+error: you must specify at least one command for the container
+[root@localhost scripts]# kubectl exec -it pg-client -n postgresql -- /bin/bash
+I have no name!@pg-client:/$ psql -U px-user -d predictx -a -q
+psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such file or directory
+        Is the server running locally and accepting connections on that socket?
+I have no name!@pg-client:/$
 

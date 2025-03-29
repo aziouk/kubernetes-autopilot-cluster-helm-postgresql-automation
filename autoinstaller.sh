@@ -19,3 +19,8 @@ terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgresc
 cd ../
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
+
+
+echo "performing remaining db tasks via automation script"
+chmod +x execute-database-tasks.sh
+./execute-database-tasks.sh
