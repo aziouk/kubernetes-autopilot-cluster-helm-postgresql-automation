@@ -1,6 +1,6 @@
 # 🚀 Deploy PostgreSQL on GKE with Terraform
 
-##TLDR
+## TLDR
 This package provides instructions for creating a multi region redundant stateful implementation of postgresql thru Helm, with and without autopilot, with DR and without DR backup.
 We are using Google Cloud GKE Vertically Autoscaling Cluster, it uses the reference samples and best practice steps provided by google cloud docs See [Here](https://github.com/aziouk/kubernetes-engine-samples) for more and a link to the original GoogleCloudPlatform samples repo.
 
