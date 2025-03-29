@@ -11,14 +11,17 @@ This resource consists of two components 1. Terraform Templates for **Google Kub
 
 ## ⚡ Quick Start
 
-# Install Method 1 - oneliner autoinstall
+# Install Method 1 - Manual Install
 make sure you run it in a path you wont to clone the repo to;
 ```
 wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
+#review the installer for security
+cat autoinstaller.sh
 chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 ```
-# Install Method 2 Installer Pipe to bash
+# One Line Installer (DANGER pipes to bash)
 ```
+#potentially hazardous
 curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
 This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
