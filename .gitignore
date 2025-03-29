@@ -1,0 +1,37 @@
+# Terraform state & backup files
+*.tfstate
+*.tfstate.*
+terraform.tfstate.backup
+.terraform/
+
+# Lock file (prevents issues with Terraform providers)
+.terraform.lock.hcl
+
+# Local variables (avoid committing secrets!)
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+
+# Provider credentials (GCP, AWS, etc.)
+.terraformrc
+.terraform.d/
+credentials
+gcloud-credentials.json
+
+# Kubernetes configuration files (may contain cluster auth details)
+config
+.kube/
+
+# Terraform execution logs (if debugging)
+crash.log
+terraform.log
+tfplan
+
+# Ignore sensitive output files
+secret.tfvars
+output.json
+
+# Helm-related files (if using Helm with Terraform)
+helmfile.yaml
+.helm/
+
