@@ -158,7 +158,7 @@ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
 ```
 ## Create Database, with credentials to named postgresdb
 You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update the database. 
-
+```
 [root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
 Launching Pod pg-client in the namespace postgresql ...
 Error from server (AlreadyExists): pods "pg-client" already exists
