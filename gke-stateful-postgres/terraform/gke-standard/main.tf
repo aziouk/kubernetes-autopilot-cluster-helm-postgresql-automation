@@ -61,7 +61,7 @@ module "gke-db1" {
     "min_cpu_cores" : 4,
     "min_memory_gb" : 12,
     "max_cpu_cores" : 12,
-    "max_memory_gb" : 64,
+    "max_memory_gb" : 24,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
@@ -142,7 +142,7 @@ module "gke-db2" {
     "min_cpu_cores" : 4,
     "min_memory_gb" : 12,
     "max_cpu_cores" : 12,
-    "max_memory_gb" : 64,
+    "max_memory_gb" : 24,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
