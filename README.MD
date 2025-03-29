@@ -101,7 +101,7 @@ You need to check carefully the output before proceeding with helm istallation
 ```
 [root@localhost postgresql-bootstrap]# helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 ```
-The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieved
+The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieving the correct version specified by helm template matched chart versions in google docs.
 
 ```
 [root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
