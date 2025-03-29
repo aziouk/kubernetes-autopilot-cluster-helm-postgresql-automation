@@ -134,7 +134,8 @@ chmod +x helm_deploy_postgres.sh
 ## Connecting to cluster-db instance
 #
 ```
-./terraform/scripts/launch-client.sh
+#./terraform/scripts/launch-client.sh
+./scripts/launch-client.sh
 
 #example output
 Launching Pod pg-client in the namespace postgresql ...
