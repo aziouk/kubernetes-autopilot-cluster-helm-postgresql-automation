@@ -6,7 +6,7 @@ metadata:
     app: prepare-three-zone-ha
     app.kubernetes.io/name: postgresql-ha
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: prepare-three-zone-ha
