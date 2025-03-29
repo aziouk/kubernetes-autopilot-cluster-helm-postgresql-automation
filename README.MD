@@ -97,6 +97,18 @@ The Helm installer provided (helm_deploy_postgres.sh) will automate the docker i
 
 However a summary of the tasks it performs are included below for your reference. 
 
+##  1️⃣ IMPORTANT Google docs are outdated for Helm Versions 
+You need to check carefully the output before proceeding with helm istallation
+```[root@localhost postgresql-bootstrap]# helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
+```
+The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieved
+
+```
+[root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
+[root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
+[root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
+```
+The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.6.0
 
 ```bash
 chmod +x helm_deploy_postgres.sh
@@ -165,8 +177,15 @@ Unfortunately because my account has several quota limits with the number of tim
 
 │ Error: error creating NodePool: googleapi: Error 403: Insufficient project quota to satisfy request: resource "CPUS_ALL_REGIONS": request requires '12.0' and is short '4.0'. project has a quota of '32.0' with '8.0' available. View and manage quotas at https://console.cloud.google.com/iam-admin/quotas?usage=USED&project=predictx-postgrescluster.
 
+│ Error: Error waiting for resuming GKE node pool:
+│       - all cluster resources were brought up, but: only 1 nodes out of 3 have registered; cluster may be unhealthy
+│       - insufficient quota to satisfy the request: Not all instances running in IGM after 30.915058557s. Expected 1, running 0, transitioning 1. Current errors: [GCE_QUOTA_EXCEEDED]: Instance 'gke-cluster-db1-pool-db-bbafcd47-mpx5' creation failed: Quota 'CPUS' exceeded.  Limit: 24.0 in region us-central1
+│       - insufficient quota to satisfy the request: Not all instances running in IGM after 31.08953717s. Expected 1, running 0, transitioning 1. Current errors: [GCE_QUOTA_EXCEEDED]: Instance 'gke-cluster-db1-pool-db-2c5de97c-ztj3' creation failed: Quota 'CPUS' exceeded.  Limit: 24.0 in region us-central1.
+
 
 <mark> Solution: build a smaller cluster of 1 node only </mark> or <mark> Increase Quota Limits with GCP </mark> alternatively in my case, since this is for demo purposes only I decreased cpu limit to 100m, from 500m and replicas from 3 to 2 in the prepareforha.yaml script and main.tf provided by the google gke cluster docs samples.
+
+It seems that the way that replicas work in zonal regions, building 3 replica instances in 3 regions builds 9 nodes, so I have reduced instances to 1, and max instances to 2. It will scale but now use <mark> much less resources </mark>.
 
 ## Terraform GKE Cluster and Helm Template Attempt 1
 

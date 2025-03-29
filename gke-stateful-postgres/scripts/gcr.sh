@@ -8,6 +8,7 @@
 
 pull_push () {
   REGISTRY=us-docker.pkg.dev
+#  REGISTRY=gcr.io
   REPO_NAME=main
   REPO_FORMAT=docker
   LOCATION=us
