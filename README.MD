@@ -113,7 +113,23 @@ The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.
 ```bash
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
+
+## Connecting to cluster-db instance
+#
+```bash
+./terraform/scripts/launch-client.sh
+
+#example output
+Launching Pod pg-client in the namespace postgresql ...
+pod/pg-client created
+waiting for the Pod to be ready
+Copying script files to the target Pod pg-client ...
+Pod: pg-client is healthy
+
+# start a shell session for testing
+kubectl exec -it pg-client -n postgresql -- /bin/bash
 ```
+
 ## Populating, Testing/Benchmarking Database
 #
 ```bash
