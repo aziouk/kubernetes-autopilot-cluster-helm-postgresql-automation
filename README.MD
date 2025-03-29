@@ -167,3 +167,137 @@ Unfortunately because my account has several quota limits with the number of tim
 
 
 <mark> Solution: build a smaller cluster of 1 node only </mark> or <mark> Increase Quota Limits with GCP </mark> alternatively in my case, since this is for demo purposes only I decreased cpu limit to 100m, from 500m and replicas from 3 to 2 in the prepareforha.yaml script and main.tf provided by the google gke cluster docs samples.
+
+## Unnecesary Detail not usually included
+
+I also created a custom template for Terraform and was able to build and communicate with the cluster. Sometimes though when it was run, because of the delay in cluster state coming available terraform can quit out, probably a delay can be added to stop that happening, because, it seems to affect the password generation run time and end up getting locked out of the postgresql database, as the password is needed to rerun automation for upgrades etc. This below template is only rough but it should work, and have spent a few hours testing, and after getting Google to increase quota on max cpu to 64, Networks to 20, and Disk quotas to 1500GB, the previous build errors are behind us.
+
+```
+
+# Define the Google Cloud provider with project and region
+provider "google" {
+  project = var.project_id
+  region  = var.region
+}
+
+# Define the Helm provider with Kubernetes context
+provider "helm" {
+  kubernetes {
+    config_context = "gke_${var.project_id}_${var.region}_${var.cluster_name}"
+    config_path    = "~/.kube/config"
+
+  }
+}
+
+# Create a GKE cluster without a default node pool
+resource "google_container_cluster" "gke_cluster" {
+  name     = var.cluster_name
+  location = var.region
+
+  remove_default_node_pool = true  # Remove the default node pool since we define a custom one
+  initial_node_count       = 1     # Placeholder value (not used since node pool is removed)
+
+  network    = "default"           # Use the default network
+  subnetwork = "default"           # Use the default subnetwork
+  deletion_protection = false
+}
+
+# Create a node pool for PostgreSQL with autoscaling
+resource "google_container_node_pool" "postgres_pool" {
+  name       = "postgres-pool"
+  cluster    = google_container_cluster.gke_cluster.name
+  location   = var.region
+
+
+  node_count = 3  # Initial number of nodes
+  autoscaling {
+    min_node_count = 3  # Minimum number of nodes
+    max_node_count = 5  # Maximum number of nodes
+  }
+
+  node_config {
+    machine_type = "e2-small"  # Machine type for the nodes
+    #preemptible  = true         # Use preemptible nodes to reduce costs
+
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform"  # Full cloud platform access
+    ]
+  }
+}
+
+# Retrieve kubeconfig credentials for the created GKE cluster
+resource "null_resource" "kubeconfig" {
+  provisioner "local-exec" {
+    command = <<EOT
+      gcloud container clusters get-credentials ${google_container_cluster.gke_cluster.name} --region ${var.region} --project ${var.project_id}
+    EOT
+  }
+}
+
+# Generate a random password for PostgreSQL
+resource "random_password" "pg_password" {
+  length  = 16   # Password length
+  special = true # Include special characters
+}
+
+
+# helm requires this line to succeed succesfully before running
+# gcloud container clusters get-credentials predictx-cluster --region us-central1-a --project predictx-postgrescluster
+
+
+# Deploy PostgreSQL using Helm
+  resource "helm_release" "postgres" {
+  name       = "postgres"
+  repository = "https://charts.helm.sh/stable"
+  chart      = "postgresql"                           # PostgreSQL Helm chart
+  namespace  = "default"                             # Kubernetes namespace
+  version    = "8.6.2"
+
+  set {
+    name  = "global.postgresql.auth.database"
+    value = "predictx"  # Create database 'predictx'
+  }
+
+  set {
+    name  = "global.postgresql.auth.username"
+    value = "px-user"  # Create user 'px-user'
+  }
+
+  set_sensitive {
+    name  = "global.postgresql.auth.password"
+# it seems this does not set the password given, probably because the script needs to be rerun.
+# it should only be run once, for now using a static password
+#    value = random_password.pg_password.result  # Set randomly generated password to test
+   value = "px-user"
+  }
+
+  set {
+    name  = "service.type"
+    value = "LoadBalancer"  # Expose PostgreSQL via NodePort for external access
+  }
+}
+
+# Create a Firewall Rule to allow external access to NodePort range
+resource "google_compute_firewall" "allow_nodeport" {
+  name    = "allow-nodeport"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["30000-32767"]  # Allow NodePort range for external access
+  }
+
+  source_ranges = ["0.0.0.0/0"]  # Allow connections from any IP address
+
+  target_tags = ["gke-node-pool"]  # Apply to GKE nodes
+}
+
+
+output "postgres_password" {
+  description = "The randomly generated password for the px-user"
+  value       = random_password.pg_password.result
+  sensitive   = true
+}
+
+
+```
