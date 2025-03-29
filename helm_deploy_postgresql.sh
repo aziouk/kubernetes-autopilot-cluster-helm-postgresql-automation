@@ -57,10 +57,10 @@ helm -n postgresql upgrade --install postgresql . \
     	--set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 
 #Output looks like
-NAMESPACE: postgresql
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
+#NAMESPACE: postgresql
+#STATUS: deployed
+#REVISION: 1
+#TEST SUITE: None
 ###
 
 # Verify that the PostgreSQL Replicas are Running
