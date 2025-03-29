@@ -1,10 +1,12 @@
 # 🚀 Deploy PostgreSQL on GKE with Terraform 
 
-## What this is
-This package provides instructions for creating a multi region redundant stateful implementation of postgresql thru Helm, with and without autopilot, with DR and without DR backup.
-We are using Google Cloud GKE Vertically Autoscaling Cluster, it uses the reference samples and best practice steps provided by google cloud docs See [Here](https://github.com/aziouk/kubernetes-engine-samples) for more and a link to the original GoogleCloudPlatform samples repo. For ease of access a fork of kubernetes-engine-samples is implemented as the kubernetes-engine-samples folder. For our purposes we are interested in gke-stateful-postgres, which is, politely included in the root of this repo. However the original version of gke-stateful-postgres, unmodified from google cloud docs, can be found in the subrepo. In future versions we may refer to kubernetes-engine-samples subrepo fork only to prevent complication, confusion, and most importantly to ensure/allow others commit their template changes that other subrepos using the automation can also enjoy. This seemed to make most sense from a maintenace perspective, as it seems at least on first glance reconcilation loops can create some very resistant applications, ease of maintenance, legibility, code recycling and effective group-relevant-revisioning of reusable templates seem like the greater cost and time saving endeavour.
+## What this is for
+This package provides instructions and automation for implementing multi region, redundant, stateful Google Cloud GKE Cluster with Helm Charts (postgresql in this example), including deploy examples with and without autopilot, with Disaster Recover and without Diaster Recovery backup.
+This github repo collection uses the reference samples and best practice steps provided by google cloud. See [Here](https://github.com/aziouk/kubernetes-engine-samples) for the forked subrepo we are maintaining, and a link to the original [GoogleCloudPlatform samples repo](.https://github.com/GoogleCloudPlatform/kubernetes-engine-samples). For ease of access Google Cloud's kubernetes-engine-samples is forked and implemented into this repos as the [subrepo kubernetes-engine-samples folder](https://github.com/aziouk/kubernetes-engine-samples/tree/58e9d6995a22be4a1f776b3361e53884caa2d53e). For our purposes we are interested in gke-stateful-postgres configurations, which the unaltered google cloud referenced is refered to in the surepo kubernetes-engine-samples. 
 
-The scripts carefully explained below will allow you to perform step-by-step terraform build and teardown of **Google Kubernetes Engine (GKE) cluster** and a **an postgresql ha application installer that is suitable for many other Helm charts**. 
+For clarity, in future versions we may refer to kubernetes-engine-samples subrepo fork to prevent complication, confusion, and most importantly to ensure/allow others commit their template changes to all repos reusing the subrepo, then tother other repos using the subrepo automation can also benefit and enjoy updates. This seemed to make most sense from a maintenace perspective, as it seems at least on first glance reconcilation loops can create some very resistant applications, ease of maintenance, legibility, code recycling and ease of revisioning seem like priorities to reduce unnecessary complexity or obfuscation of the build process.
+
+This resource aims to facilitate applying and destroying **Google Kubernetes Engine (GKE) cluster** and a **Helm charts** in the two components listed below. 
 
 ## 📌 Prerequisites
 
@@ -19,6 +21,7 @@ Ensure you have the following installed:
 | **Helm (≥ v3)** | Package manager for Kubernetes (needed for PostgreSQL deployment) | `brew install helm` / [Install Guide](https://helm.sh/docs/intro/install/) |
 | **jq** | JSON parser (for debugging outputs) | `brew install jq` |
 | **gsutil** | CLI tool to manage Google Cloud Storage (if using GCS for secrets) | `gcloud components install gsutil` |
+| **docker** | Local version of docker required to be installed and running | `yum install docker` |
 
 ---
 
