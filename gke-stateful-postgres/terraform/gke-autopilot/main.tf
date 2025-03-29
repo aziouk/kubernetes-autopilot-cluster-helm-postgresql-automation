@@ -48,7 +48,7 @@ module "gke-db1-autopilot" {
   enable_private_nodes            = true
   master_ipv4_cidr_block          = "172.16.0.0/28"
   create_service_account          = false
-  # ensure destroy can be ran without intervention
+  # ensure destroy can be ran without intervention, apparently not allowed here
   deletion_protection 		  = false
 }
 # [END gke_autopilot_private_regional_primary_cluster]
@@ -73,7 +73,7 @@ module "gke-db2-autopilot" {
   enable_private_nodes            = true
   master_ipv4_cidr_block          = "172.16.0.16/28"
   create_service_account          = false
-  # ensure destroy can be ran without intervention
-  deletion_protection             = false
+  # ensure destroy can be ran without intervention, apparently not allowed hmmm
+  #deletion_protection             = false
 }
 # [END gke_autopilot_private_regional_backup_cluster]
