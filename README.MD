@@ -261,8 +261,11 @@ Above block for debugging/testing automation for /tmp/scripts/create-user.sql an
 (Such as creating user, database, password in master cluster configuration.)
 This seems like not the best way to do it and a plugin/addin will do it better like postgresql --set parameter variable for the existing mod etc.
 
-chmod +x
-./execute-database-tasks.sh
+```
+# this runs as part of the autoinstaller.sh you dont need to run it
+chmod +x execute-database-tasks.sh && ./execute-database-tasks.sh
+```
+
 ```
 #test performance with pgbench
 export DB=postgres
