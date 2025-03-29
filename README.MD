@@ -114,6 +114,27 @@ The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
 ```
+## Populating, Testing/Benchmarking Database
+#
+```bash
+# input generated db for testing
+psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/generate-db.sql
+# test counting rows
+psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
+
+# test performance with pgbench
+export DB=postgres
+pgbench -i -h $HOST_PGPOOL -U postgres $DB -s 50
+#example output
+dropping old tables...
+creating tables...
+generating data (client-side)...
+5000000 of 5000000 tuples (100%) done (elapsed 73.37 s, remaining 0.00 s)
+vacuuming...
+creating primary keys...
+done in 90.44 s (drop tables 0.00 s, create tables 0.02 s, client-side generate 76.88 s, vacuum 3.16 s, primary keys 10.37 s).
+
+```
 
 ## 🔐 Using Google Secret Manager (GSM)
 
