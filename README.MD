@@ -2,9 +2,9 @@
 
 ## TLDR
 This package provides instructions for creating a multi region redundant stateful implementation of postgresql thru Helm, with and without autopilot, with DR and without DR backup.
-We are using Google Cloud GKE Vertically Autoscaling Cluster, it uses the reference samples and best practice steps provided by google cloud docs See [Here](https://github.com/aziouk/kubernetes-engine-samples) for more and a link to the original GoogleCloudPlatform samples repo.
+We are using Google Cloud GKE Vertically Autoscaling Cluster, it uses the reference samples and best practice steps provided by google cloud docs See [Here](https://github.com/aziouk/kubernetes-engine-samples) for more and a link to the original GoogleCloudPlatform samples repo. For ease of access a fork of kubernetes-engine-samples is implemented as the kubernetes-engine-samples folder. For our purposes we are interested in gke-stateful-postgres, which is, politely included in the root of this repo. However the original version of gke-stateful-postgres, unmodified from google cloud docs, can be found in the subrepo. In future versions we may refer to kubernetes-engine-samples subrepo fork only to prevent complication, confusion, and most importantly to ensure/allow others commit their template changes that other subrepos using the automation can also enjoy. This seemed to make most sense from a maintenace perspective, as it seems at least on first glance reconcilation loops can create some very resistant applications, ease of maintenance, legibility, code recycling and effective group-relevant-revisioning of reusable templates seem like the greater cost and time saving endeavour.
 
-The scripts carefully explained eblow will allow you to perform step-by-step terraform build and teardown of **Google Kubernetes Engine (GKE) cluster** and a **PostgreSQL database** using **Terraform & Helm**. 
+The scripts carefully explained below will allow you to perform step-by-step terraform build and teardown of **Google Kubernetes Engine (GKE) cluster** and a **an postgresql ha application installer that is suitable for many other Helm charts**. 
 
 ## 📌 Prerequisites
 
@@ -107,4 +107,5 @@ There are two main components at present, the first piece of the automation is <
 ## Comments
 
 I do not have a lot of experience with Terraform and Helm Devops on GCP, and this my first adventure in it, but the scripts split up this way should be helpful for anyone wanting to understand, build or experiment with google GKE Clusters with and without autopilot, with and without DR, and with postgressql or any other chart. The 2 components therefore allow this script to be forked and could install theoretically any chart onto a GKE cluster for which a chart-docker-repo exists for kubernetes. Although I am less familiar with this approach the kubernetes-docker approach seems very streamlined and is uniquely useful for price optimized stateful approach to cloud app implementations. Certainly I see there is a lot to learn about GCP Kubernetes containerised abilities compared with my previous experience mainly in dedicated and openstack cloud.
+
 
