@@ -155,13 +155,11 @@ kubectl exec -it pg-client -n postgresql -- /bin/bash
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/generate-db.sql
 #test counting rows
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
-
+```
 ## Create Database, with credentials to named postgresdb
 You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update the database. 
 
-```
 [root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
-
 Launching Pod pg-client in the namespace postgresql ...
 Error from server (AlreadyExists): pods "pg-client" already exists
 waiting for the Pod to be ready
@@ -257,6 +255,12 @@ Defaulted container "postgresql" out of: postgresql, metrics
 I have no name!@postgresql-postgresql-ha-postgresql-0:/$ psql -U px-user -d predictx -a -q
 predictx=> quit
 ```
+Above block for debugging/testing automation for /tmp/scripts/create-user.sql and /tmp/scripts/launch-master.sh
+
+# Working Automation for creating user, database, password in master cluster configuration
+This seems like not the best way to do it and a plugin/addin will do it better like postgresql --set parameter variable for the existing mod etc.
+
+
 
 #test performance with pgbench
 export DB=postgres
