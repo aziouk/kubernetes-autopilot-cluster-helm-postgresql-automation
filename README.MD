@@ -257,11 +257,13 @@ predictx=> quit
 ```
 Above block for debugging/testing automation for /tmp/scripts/create-user.sql and /tmp/scripts/launch-master.sh
 
-# Working Automation for creating user, database, password in master cluster configuration
+# Working Automation for Executing Database Tasks
+(Such as creating user, database, password in master cluster configuration.)
 This seems like not the best way to do it and a plugin/addin will do it better like postgresql --set parameter variable for the existing mod etc.
 
-
-
+chmod +x
+./execute-database-tasks.sh
+```
 #test performance with pgbench
 export DB=postgres
 pgbench -i -h $HOST_PGPOOL -U postgres $DB -s 50
@@ -273,8 +275,8 @@ generating data (client-side)...
 vacuuming...
 creating primary keys...
 done in 90.44 s (drop tables 0.00 s, create tables 0.02 s, client-side generate 76.88 s, vacuum 3.16 s, primary keys 10.37 s).
-
 ```
+
 ## Configuring Monitoring Service Dashboard
 
 ```bash
