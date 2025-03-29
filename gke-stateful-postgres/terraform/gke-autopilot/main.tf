@@ -58,7 +58,7 @@ module "gke-db2-autopilot" {
   project_id                      = var.project_id
   name                            = "cluster-db2"
 # this line breaks automation at present, 1.27 is new latest version
-  kubernetes_version              = "1.27" # Will be ignored if use "REGULAR" release_channel
+#  kubernetes_version              = "1.27" # Will be ignored if use "REGULAR" release_channel
   region                          = "us-west1"
   regional                        = true
   zones                           = ["us-west1-a", "us-west1-b", "us-west1-c"]
@@ -74,6 +74,6 @@ module "gke-db2-autopilot" {
   master_ipv4_cidr_block          = "172.16.0.16/28"
   create_service_account          = false
   # ensure destroy can be ran without intervention, apparently not allowed hmmm
-   #deletion_protection             = false
+  #deletion_protection             = false
 }
 # [END gke_autopilot_private_regional_backup_cluster]
