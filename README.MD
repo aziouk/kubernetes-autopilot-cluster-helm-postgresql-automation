@@ -396,7 +396,7 @@ gpg --output decrypted.export.secret.plaintext --decrypt export.secret.gpg
 (Would naturally not do this in real prod env). You will also be asked for the passphrase which I will send seperately.
 
 
-## Simulating Cluster Failure and Recovery
+# Simulating Cluster Failure and Recovery
 Open a new cloud shell sessions and cofigure <mark> kubectl </mark> commandline access to primary db.
 ```
 gcloud container clusters get-credentials $SOURCE_CLUSTER \
