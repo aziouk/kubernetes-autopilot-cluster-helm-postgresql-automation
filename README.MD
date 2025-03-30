@@ -30,7 +30,7 @@ echo -n "predictx" | gcloud secrets version DB_NAME --data-file=-
 history -d $(history 4 | awk '{print $1}') && history -w
 
 ```
-
+The above could be handled by the setenv install (please request this if needed), but it would involve automation scripts containing sensitive credentials in plaintext. It is much better not to use setenv, but it is trivial to add automation to set the password. For example if the deploy scripts are on a bastion which self destroys, then it would be potentially acceptable. Perhaps if setenv had a pre-encrypted credential store, then the credentials could be ported with the template for special circumstances, but this is not recommended.
 
 # Install Method 1
 ```
