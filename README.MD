@@ -15,7 +15,7 @@ Before using the Quick Start installers please view the prequisites and GSM Setu
 # Initaializing GSM for First time
 <p align="left">
   <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer to succeed. Helm Chart autoinstaller automation uses credentials from GSM to support deployment, without it builds will fail.
-Replace px-user-password and px-user with credentials. This must be ran before the autoinstaller. (todo: move to top of git readme)
+Replace px-user-password and px-user with credentials. This must be ran before the autoinstaller. 
 </p>
 
 ```
