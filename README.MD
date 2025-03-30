@@ -880,7 +880,8 @@ deployment.apps/kube-dns restarted
 ```
 
 and here we have exactly the same problem.
-```[root@localhost postgresql-bootstrap]# kubectl get pods -l k8s-app=kube-dns -n kube-system
+```
+[root@localhost postgresql-bootstrap]# kubectl get pods -l k8s-app=kube-dns -n kube-system
 NAME                        READY   STATUS             RESTARTS   AGE
 kube-dns-74574dcb7f-kvh89   3/4     ImagePullBackOff   0          9m16s
 kube-dns-74fc497549-bdsmc   3/4     ErrImagePull       0          63s

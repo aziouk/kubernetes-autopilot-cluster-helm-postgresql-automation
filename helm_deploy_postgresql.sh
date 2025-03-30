@@ -13,14 +13,15 @@ gcloud auth configure-docker us-docker.pkg.dev
 
 # pull compatible images recommended by google GKE Documentation
 # google cloud vendor docs are wrong, and multiple versions outdated, what a shocker
-#./scripts/gcr.sh bitnami/postgresql-repmgr 15.1.0-debian-11-r0
-#./scripts/gcr.sh bitnami/postgres-exporter 0.11.1-debian-11-r27
-#./scripts/gcr.sh bitnami/pgpool 4.3.3-debian-11-r28
+# Google says to use this but had problems before so had added the ones below, trying these again as builds of kube-dns and cluster still broken. ha not working as expected any longer. Probably changed something to mess it up accidentally. 
+./scripts/gcr.sh bitnami/postgresql-repmgr 15.1.0-debian-11-r0
+./scripts/gcr.sh bitnami/postgres-exporter 0.11.1-debian-11-r27
+./scripts/gcr.sh bitnami/pgpool 4.3.3-debian-11-r28
 
 # these often need to be changed for builds to succeed
-./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
-./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
-./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
+#./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
+#./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
+#./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
 
 
 # Verify the packages are stored in repo
