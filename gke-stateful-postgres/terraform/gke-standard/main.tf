@@ -42,8 +42,9 @@ module "gke-db1" {
   source                   = "../modules/beta-private-cluster"
   project_id               = var.project_id
   name                     = "cluster-db1"
-  regional                 = true
-  region                   = "us-central1"
+  regional                 = false
+  region                   = "us-west1"
+  zones			   = ["us-west1-a", "us-west-1b"]
   network                  = module.network.network_name
   subnetwork               = module.network.primary_subnet_name
   ip_range_pods            = "ip-range-pods-db1"
