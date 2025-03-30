@@ -920,7 +920,8 @@ kube-dns-85ddb76787-lmfsh   3/4     ImagePullBackOff   0          67s
 It is just a really weird error, and I spent several hours trying to look for the cause, despite everything being right and previously working multiple times, it is as if DNS suddenly stopped working. Perhaps IAM or permissions is causing misleading error. Also, why does this only appear to impact db1? Is it the use of the service account? I suspect so actually. I will try rebuilding without the service account to rule this out;
 
 
-```[root@localhost postgresql-bootstrap]# kubectl get pods -n kube-system
+```
+[root@localhost postgresql-bootstrap]# kubectl get pods -n kube-system
 NAME                                                             READY   STATUS         RESTARTS      AGE
 calico-node-k5bmt                                                1/1     Running        0             77m
 calico-node-mdjnj                                                1/1     Running        0             78m
@@ -1010,7 +1011,6 @@ kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
 ```
 2. Query the DNS server:
 ```
-/ # host kubernetes
 [root@localhost postgresql-bootstrap]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
 Error from server (AlreadyExists): pods "dnstools" already exists
 ```
@@ -1041,7 +1041,8 @@ The issue is definitely kaliko i think. You can try running the following to get
 28m         Warning   FailedCreatePodSandBox   pod/calico-node-vertical-autoscaler-6d4c965dc7-npmt6                 Failed to create pod sandbox: rpc error: code = Unknown desc = failed to setup network for sandbox "1724729e3ee714c0e788a992ecb5958a4f2e3534ddad5b0757d261d9a2b76fe1": plugin type="calico" failed (add): error getting ClusterInformation: resource does not exist: ClusterInformation(default) with error: clusterinformations.crd.projectcalico.org "default" not found
 ```
 
-```6m59s       Warning   FailedScheduling         pod/coredns-coredns-64fc886fd4-b6zdm                                 0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+```
+6m59s       Warning   FailedScheduling         pod/coredns-coredns-64fc886fd4-b6zdm                                 0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
 119s        Normal    NotTriggerScaleUp        pod/coredns-coredns-64fc886fd4-b6zdm                                 pod didn't trigger scale-up: 9 max cluster cpu, memory limit reached
 66s         Warning   FailedScheduling         pod/coredns-coredns-64fc886fd4-b6zdm                                 0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
 7m          Normal    SuccessfulCreate         replicaset/coredns-coredns-64fc886fd4                                Created pod: coredns-coredns-64fc886fd4-b6zdm
@@ -1078,7 +1079,7 @@ REVISION: 1
 TEST SUITE: None
 NOTES:
 CoreDNS is now running in the cluster as a cluster-service.
-
+```
 It can be tested with the following:
 
 1. Launch a Pod with DNS tools:
@@ -1087,7 +1088,8 @@ kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
 
 2. Query the DNS server:
 
-/ # host kubernetes
+# host kubernetes
+```
 [root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
 Error from server (AlreadyExists): pods "dnstools" already exists
 
