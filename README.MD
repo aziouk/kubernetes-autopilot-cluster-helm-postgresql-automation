@@ -494,9 +494,8 @@ Using GSM is more secure than storing secrets in a GCS bucket because:
 - 🛂 It provides fine-grained access control (IAM permissions).
 - 🔄 You can version secrets and rotate credentials easily.
 
-## 🔧 Step 1: Modify Terraform to Store Secrets in GSM
 
-### 1️⃣ Enable the Secret Manager API  
+## Enable the Secret Manager API  
 
 Before running Terraform, enable the Secret Manager API:  
 
@@ -509,14 +508,14 @@ gcloud services enable secretmanager.googleapis.com
 If you prefer storing metadata in a GCS bucket (⚠️ less secure than GSM), modify Terraform to save the password into a file and upload it:
 
 ```
-# Create a GCS bucket for storing metadata
+## Create a GCS bucket for storing metadata
 resource "google_storage_bucket" "pg_metadata" {
   name          = "predictx-db-metadata"
   location      = var.region
   force_destroy = true
 }
 
-# Store PostgreSQL credentials in the GCS bucket
+## Store PostgreSQL credentials in the GCS bucket
 resource "google_storage_bucket_object" "pg_password_file" {
   name   = "postgres-password.txt"
   bucket = google_storage_bucket.pg_metadata.name
@@ -636,8 +635,6 @@ resource "google_container_node_pool" "postgres_pool" {
     machine_type = "e2-small"  # Machine type for the nodes
     #preemptible  = true         # Use preemptible nodes to reduce costs
 
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"  # Full cloud platform access
     ]
   }
 }
