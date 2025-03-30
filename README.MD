@@ -127,6 +127,27 @@ You don't need to run above. all in one helm deploy postgres script will do this
 
 The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.6.0
 
+## 1️⃣ IMPORTANT Helm Now Uses Google Secret's Manager To Store Vault information
+You will need to set the DB_USER and DB_PASSWORD once, which is then used by helm_deploy_postgres.sh autoinstall script. Theoretically this step isn't necessary again once it is set, but it is important for first time setup of the cluster, and that anyone working on the project understands this component correctly from a security standpoint.
+
+# Checking if GSM Is already set
+
+```
+gcloud secrets versions access latest --secret=DB_USER
+gcloud secrets versions access latest --secret=DB_PASSWORD
+```
+
+# Initaializing GSM for First time
+This **MUST** be run at least once for helm automation to succeed installing postgres. Once it is set in the GSM the automation will continue to use it automatically.
+Replace px-user-password and px-user with your desired credentials ensuring password is at least 12 characters in length and alphanumeric generated with at least one special character, capitalisation, numbers and digits.
+```
+gcloud secrets create DB_PASSWORD --replication-policy="automatic"
+gcloud secrets create DB_USER --replication-policy="automatic"
+
+echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
+echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
+```
+
 ```bash
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
