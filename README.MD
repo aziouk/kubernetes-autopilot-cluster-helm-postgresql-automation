@@ -570,7 +570,7 @@ I do not have a lot of experience with Terraform and Helm Devops on GCP, and thi
 
 ## Common Errors
 
-Unfortunately because my account has several quota limits with the number of times I can spin up and down automation. I reached the limit of my quota pretty fast. Here are common errors that you will see, that are *not* a result of the automation failing, but potential barriers from untainted builds with the terraform/helm automation included. This seems especially relevant to the ha scaling quota specifically. See below for common issues;
+Unfortunately because my account has several quota limits with the number of times I can spin up and down automation. I reached the limit of my quota pretty fast. Here are some common errors I received before I requested google to increase my cpu quota region wide to a value of 64, and disk size to a value of 1500GB.
 
 * Pod is blocking scale down because it doesn't have enough pod disruption budget (PDB) 
 * Pod is blocking scale down because its controller can't be found. 
