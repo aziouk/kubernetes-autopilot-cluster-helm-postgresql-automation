@@ -34,6 +34,16 @@ The above could be handled by the setenv install (please request this if needed)
 
 The third "middle way approach" is to generate random username, password, and database credential variales at run-time and store them in GSM programatically, and then have the automation refer to the given gsm secret vars. At the end of the helm build calls can be made to reveal the DB_PASSWORD, DB_USER and DB_NAME in GSM used by Helm Chart upgrade installer. This change would require only trivial/arbitrary changes if it is desired instead of pre-assigned credentials, the generative approach would not expose any plaintext credentials, or take input credentials from anywhere, or require manual initialisation of GSM or keystore. For consistency the latter is probably most suitable in most prod and dev scenarios. 
 
+# Checking if GSM Is already set
+
+```
+gcloud secrets versions access latest --secret=DB_USER
+gcloud secrets versions access latest --secret=DB_PASSWORD
+gcloud secrets versions access latest --secret=DB_NAME
+```
+
+
+
 # Install Method 1
 ```
 wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
@@ -158,12 +168,6 @@ The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.
 ## Helm Component now uses GSM To Store Vault information
 You will need to set the DB_USER and DB_PASSWORD once, which is then used by helm_deploy_postgres.sh autoinstall script. Theoretically this step isn't necessary again once it is set, but it is important for first time setup of the cluster, and that anyone working on the project understands this component correctly from a security standpoint.
 
-# Checking if GSM Is already set
-
-```
-gcloud secrets versions access latest --secret=DB_USER
-gcloud secrets versions access latest --secret=DB_PASSWORD
-```
 
 # Running Helm Automation
 
