@@ -50,7 +50,7 @@ module "gke-db1" {
   ip_range_services        = "ip-range-svc-db1"
   create_service_account   = true
   enable_private_endpoint  = false
-  enable_private_nodes     = false
+  enable_private_nodes     = true
   master_ipv4_cidr_block   = "172.16.0.0/28"
   network_policy           = true
 #  deletion_protection	   = false
@@ -131,7 +131,7 @@ module "gke-db2" {
   create_service_account   = false
   service_account          = module.gke-db1.service_account
   enable_private_endpoint  = false
-  enable_private_nodes     = false
+  enable_private_nodes     = true
   master_ipv4_cidr_block   = "172.16.0.16/28"
   network_policy           = true
 #  deletion_protection	   = false
