@@ -1057,9 +1057,9 @@ kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
 Error from server (AlreadyExists): pods "dnstools" already exists
 ```
 Delete existing pods failing
+```
 [root@localhost postgresql-bootstrap]# kubectl delete pod dnstools
-pod "dnstools" deleted
-
+```
 #Attempt to build from latest image a pod and test hostname resolution
 ```
 [root@localhost postgresql-bootstrap]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
