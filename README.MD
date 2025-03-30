@@ -806,3 +806,54 @@ command terminated with exit code 2
 I will come back to this hopefully and fix it.
 
 I fixed it. I wrote a new master-client for the 0th node postgresql-postgresql-ha-postgresql-0 to upload the necessary init db scripts. Theoretically client-connect pgclient script can be adapted to switch to any pod and upload the /tmp/scripts for workload/population on postgresql etc. I don't think this was a proper way of doing it, so we're using HELM automation for now, which works to carry out this portion of the credential and db set vars.
+
+
+# Documenting a Strange GKE Issue
+
+After succesfully completing the automation and doing a dry run, everything worked, except that when got to helm automation a few vars weren't passed as expected. However, that is when the entire build automation for gke-release stopped working without a good explanation. To eliminate a permissions issue, I use the main owner account of the project_id and check the service permissions are added, which they are. It seems artfact register read permissions are there.
+3 out of the 4 kubedns containers for the 3 ha regions come up, but the 4th one doesnt because GKE refers to a completely non existent repo image. How frustrating. Everything works in the automation but google Cloud's own repo images does not. Here is how I went about debugging it. A lengthy process...
+
+```
+[root@localhost gke-stateful-postgres]# kubectl get pods -l k8s-app=kube-dns -n kube-system
+NAME                        READY   STATUS             RESTARTS   AGE
+kube-dns-6664c9c7fc-h7p4s   3/4     ImagePullBackOff   0          31m
+kube-dns-94776b584-m842z    3/4     ImagePullBackOff   0          61m
+kube-dns-94776b584-nbwcx    3/4     ImagePullBackOff   0          65m
+
+```
+
+I done a describe of the VM to identify the failed image pull for gke cluster causing the ImagePullBackOff
+
+```
+[root@localhost gke-stateful-postgres]# kubectl describe pod kube-dns-6664c9c7fc-h7p4s -n kube-system
+
+Events:
+  Type     Reason             Age                    From                Message
+  ----     ------             ----                   ----                -------
+  Warning  FailedScheduling   34m                    default-scheduler   0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}.
+  Warning  FailedScheduling   34m                    default-scheduler   0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: not eligible due to a terminating pod on the nominated node.
+  Warning  FailedScheduling   34m                    default-scheduler   0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: not eligible due to a terminating pod on the nominated node.
+  Normal   Scheduled          32m                    default-scheduler   Successfully assigned kube-system/kube-dns-6664c9c7fc-h7p4s to gke-cluster-db1-nap-e2-highcpu-2-10s8-e8d38620-kgll
+  Normal   NotTriggerScaleUp  34m                    cluster-autoscaler  pod didn't trigger scale-up: 9 max cluster cpu, memory limit reached
+  Normal   Pulled             32m                    kubelet             Container image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-kube-dns:1.25.0-gke.4@sha256:06837d58557deb555dfc26937cc45a32a0726a2e94f5b7c23a168273e544a077" already present on machine
+  Normal   Started            32m                    kubelet             Started container dnsmasq
+  Normal   Started            32m                    kubelet             Started container kubedns
+  Normal   Pulled             32m                    kubelet             Container image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-dnsmasq-nanny:1.25.0-gke.4@sha256:5c86940a8b0578cd97f113da10850956f55b66d88a8899dfc2c60ad3fdca3ea6" already present on machine
+  Normal   Created            32m                    kubelet             Created container: dnsmasq
+  Normal   Created            32m                    kubelet             Created container: kubedns
+  Normal   Pulled             32m                    kubelet             Container image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-sidecar:1.25.0-gke.4@sha256:e6adc0cf878edaa70778582684a97ac744e2e88b69de6f3d4b536e3dd68fe1fd" already present on machine
+  Normal   Started            32m                    kubelet             Started container sidecar
+  Normal   Created            32m                    kubelet             Created container: sidecar
+  Warning  Unhealthy          32m                    kubelet             Readiness probe failed: Get "http://192.168.5.25:8081/readiness": dial tcp 192.168.5.25:8081: connect: connection refused
+  Normal   Pulling            29m (x5 over 32m)      kubelet             Pulling image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector:20250317_2300_RC0@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19"
+  Warning  Failed             29m (x5 over 32m)      kubelet             Failed to pull image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector:20250317_2300_RC0@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19": rpc error: code = NotFound desc = failed to pull and unpack image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19": failed to resolve reference "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19": us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19: not found
+  Warning  Failed             29m (x5 over 32m)      kubelet             Error: ErrImagePull
+  Normal   BackOff            2m45s (x132 over 32m)  kubelet             Back-off pulling image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector:20250317_2300_RC0@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19"
+  Warning  Failed             2m45s (x132 over 32m)  kubelet             Error: ImagePullBackOff
+```
+
+I am greeted with extremely unceremonious message, causing great disapointment after much time and hard work exhaustively writing the code, it seems though GKE cluster does not behave consistently at all due it's over-complexity. This must make working with GKE Cluster incredibly frustrating compared to other potential solutions. However it has amazing capability for sure, so let us persevere tracing this down. I think GKE is trying to pull an image that isnt there, rather than it a serviceaccount permissions problem with the cluster.
+
+So, I actually think it might be possible the ImagePullBackOff error could be cause by low memory, which means increasing quota or decreasing the number of nodes should fix it.
+
+
