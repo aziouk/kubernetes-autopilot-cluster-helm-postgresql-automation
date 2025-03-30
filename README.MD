@@ -1061,6 +1061,7 @@ Delete existing pods failing
 pod "dnstools" deleted
 
 #Attempt to build from latest image a pod and test hostname resolution
+```
 [root@localhost postgresql-bootstrap]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
 If you don't see a command prompt, try pressing enter.
 dnstools#  host kubernetes
