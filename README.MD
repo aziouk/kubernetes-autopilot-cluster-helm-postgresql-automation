@@ -587,21 +587,21 @@ Unfortunately because my account has several quota limits with the number of tim
 
 It seems that the way that replicas work in zonal regions, building 3 replica instances in 3 regions builds 9 nodes, so I have reduced instances to 1, and max instances to 2. It will scale but now use <mark> much less resources </mark>.
 
-## Adding Service Accounts
-# Creating a Service Account 
+# Adding Service Accounts
+## Creating a Service Account 
 ```
 gcloud iam service-accounts create my-service-account \
   --description="Service account for GKE Cluster/Helm Autoinstaller with full access" \
   --display-name="GKE Cluster/Helm Autobuilder Service Account"
 ```
 
-# Creating owner permissions
+## Creating owner permissions
 ```
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:my-service-account@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/owner"
 ```
-# Invite a Team Member to Project
+## Invite a Team Member to Project
 ```
 EMAIL=teammembersemail
 
