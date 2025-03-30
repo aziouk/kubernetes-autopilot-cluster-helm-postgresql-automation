@@ -66,7 +66,7 @@ roles/resourcemanager.projectIamAdmin
 roles/viewer
 ```
 
-## Trouble with Googles Example Templates Failing (Updated 28/03/2025)
+## Googles Kubernetes Cloud Examples Fail to Build (Updated 28/03/2025)
 <p align="left">
   <strong>⚠️ Warning:</strong> Be forewarned that Googles Terraform and Helm templates documentation for Google Cloud are stale and unmaintained, causing most builds of their examples to imagepullerr or taint.
 </p>
