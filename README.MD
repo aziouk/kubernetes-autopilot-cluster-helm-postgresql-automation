@@ -1158,4 +1158,12 @@ options ndots:5
 dnstools#
 ```
 
-
+Constantly hitting quotas and 10 minute build and destroy times has been a frustratingly annoying. As has no support for delete protection disable for google versions <5.00 which are necesary to avoid network cli bugs
+```
+CrashLoopBackOff Container 'postgresql' keeps crashing.
+PodUnschedulable Cannot schedule pods: Preemption is not helpful for scheduling.
+PodUnschedulable Cannot schedule pods: Insufficient cpu.
+PodUnschedulable Cannot schedule pods: No preemption victims found for incoming pod.
+PodUnschedulable Cannot schedule pods: node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}.
+PodUnschedulable Cannot schedule pods: node(s) didn't match Pod's node affinity/selector.
+```
