@@ -474,13 +474,19 @@ make sure you switch the environment properly to get the correct environment or 
 ## Procedure for Debugging Common Build Failures 
 To obtain debug information and pull status, affiity status and various other deubgging data pertinent to resolving common errors use;
 ```
+# Describe all pods templates
 kubectl -n postgresql describe pods
+# Overview of 'pods' in projects NAMESPACE 
+kubectl get all -n $NAMESPACE
+# Check Kube DNS System
+ kubectl get events -n kube-system
+
 ```
 
 
 
 
-## 🔐 Using Google Secret Manager (GSM)
+# 🔐 Using Google Secret Manager (GSM)
 
 Using GSM is more secure than storing secrets in a GCS bucket because:
 
@@ -498,7 +504,7 @@ Before running Terraform, enable the Secret Manager API:
 gcloud services enable secretmanager.googleapis.com
 ```
 
-## 🔄 Alternative: Store Metadata in a GCS Bucket
+## Example: Store Metadata in a GCS Bucket
 
 If you prefer storing metadata in a GCS bucket (⚠️ less secure than GSM), modify Terraform to save the password into a file and upload it:
 
@@ -552,7 +558,10 @@ Unfortunately because my account has several quota limits with the number of tim
 
 It seems that the way that replicas work in zonal regions, building 3 replica instances in 3 regions builds 9 nodes, so I have reduced instances to 1, and max instances to 2. It will scale but now use <mark> much less resources </mark>.
 
-# Adding Service Accounts
+# Other Various Actions/Troubleshooting procedures
+
+This next section is TLDR and would not be included in repo usually unless it was a wiki-foo.
+
 ## Creating a Service Account 
 ```
 gcloud iam service-accounts create my-service-account \
