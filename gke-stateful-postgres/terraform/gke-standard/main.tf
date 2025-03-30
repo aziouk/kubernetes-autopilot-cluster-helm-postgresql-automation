@@ -43,8 +43,8 @@ module "gke-db1" {
   project_id               = var.project_id
   name                     = "cluster-db1"
   regional                 = false
-  region                   = "us-west1"
-  zones			   = ["us-west1-a", "us-west-1b"]
+  region                   = "us-central1"
+  zones			   = ["us-central1-a"]
   network                  = module.network.network_name
   subnetwork               = module.network.primary_subnet_name
   ip_range_pods            = "ip-range-pods-db1"
@@ -76,7 +76,7 @@ module "gke-db1" {
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-2"
-      node_locations  = "us-central1-a,us-central1-b,us-central1-c"
+      node_locations  = "us-central1-a"
       auto_repair     = true
     },
     {
@@ -85,7 +85,7 @@ module "gke-db1" {
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-2"
-      node_locations  = "us-central1-a,us-central1-b,us-central1-c"
+      node_locations  = "us-central-1a"
       auto_repair     = true
     },
   ]
@@ -156,7 +156,7 @@ module "gke-db2" {
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-2"
-      node_locations  = "us-west1-a"
+      node_locations  = "us-west1-b"
       auto_repair     = true
     },
     {
@@ -165,7 +165,7 @@ module "gke-db2" {
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-2"
-      node_locations  = "us-west1-a"
+      node_locations  = "us-west1-b"
       auto_repair     = true
     },
   ]
