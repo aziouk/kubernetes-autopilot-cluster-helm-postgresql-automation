@@ -114,7 +114,7 @@ The Helm installer provided (helm_deploy_postgres.sh) will automate the docker i
 However a summary of the tasks it performs are included below for your reference. 
 
 <p align="left">
-  <strong>⚠️ Warning:</strong> Google Cloud Documentation is using wrong matched versions and has unmaintained templates dependencies etc. Ensure you use these versions or build wont pull images properly from the repo due to them being missing from the vendor.
+  <strong>⚠️ Warning:</strong> Google Cloud Documentation Examples has unmaintained/stale templates, instructions for helm dependencies scripts can not be trusted as correct.
 </p>
 
 You need to check carefully the output before proceeding with helm istallation
