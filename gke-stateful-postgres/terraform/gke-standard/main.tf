@@ -154,7 +154,7 @@ module "gke-db2" {
       max_count       = 2
       max_surge       = 1
       max_unavailable = 0
-      machine_type    = "e2-standard-2"
+      machine_type    = "e2-small"
       node_locations  = "us-west1-a,us-west1-b,us-west1-c"
       auto_repair     = true
     },
@@ -163,7 +163,7 @@ module "gke-db2" {
       autoscaling     = true
       max_surge       = 1
       max_unavailable = 0
-      machine_type    = "e2-standard-4"
+      machine_type    = "e2-small"
       node_locations  = "us-west1-a,us-west1-b,us-west1-c"
       auto_repair     = true
     },

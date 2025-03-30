@@ -78,7 +78,8 @@ echo "==== HELM CHART ENDS HERE ====="
 
 #Corrections for Bitnami Helm Chart Installation with GSM secret store variables
 echo "==== HELM CHART INSTALL BEGINS HERE, for $PROJECT_ID.$SOURCE_CLUSTER====="
-helm upgrade --install postgresql ./helm-chart \
+helm upgrade --install postgresql . \
+  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
   --set auth.username=$(gcloud secrets versions access latest --secret=DB_USER) \
   --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
   --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
