@@ -805,4 +805,4 @@ command terminated with exit code 2
 ```
 I will come back to this hopefully and fix it.
 
-I fixed it. I wrote a new master-client for the 0th node. Theoretically client-connect pgclient script can be adapted to switch to any pod and upload the /tmp/scripts for workload/population on postgresql etc.
+I fixed it. I wrote a new master-client for the 0th node postgresql-postgresql-ha-postgresql-0 to upload the necessary init db scripts. Theoretically client-connect pgclient script can be adapted to switch to any pod and upload the /tmp/scripts for workload/population on postgresql etc. I don't think this was a proper way of doing it, so we're using HELM automation for now, which works to carry out this portion of the credential and db set vars.
