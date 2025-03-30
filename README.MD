@@ -1095,3 +1095,53 @@ The issue is definitely kaliko i think. You can try running the following to get
 
 It looks like the dns is causing taints in the whole build process because some memory quota limit is reached. Unfortunately the error message is so unhelpful it is dificult to conclude what 9 max cluster cpu refers to. I've checked in quotas and everything looks fine. so weird.
 
+
+# Reconfiguring Kube-Dns, Reinstalling, Pulling new configmap
+
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl delete configmap coredns -n kube-system
+configmap "coredns" deleted
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl apply -f https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/coredns/coredns.yaml
+error: unable to read URL "https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/coredns/coredns.yaml", server reported 404 Not Found, status code=404
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl delete deployment coredns -n kube-system
+deployment.apps "coredns" deleted
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm install coredns coredns/coredns --namespace kube-system
+Error: INSTALLATION FAILED: cannot re-use a name that is still in use
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm uninstall coredns -n kube-system
+release "coredns" uninstalled
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm list -n kube-system
+NAME    NAMESPACE       REVISION        UPDATED STATUS  CHART   APP VERSION
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm install coredns coredns/coredns --namespace kube-system
+NAME: coredns
+LAST DEPLOYED: Sun Mar 30 15:50:53 2025
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+CoreDNS is now running in the cluster as a cluster-service.
+
+It can be tested with the following:
+
+1. Launch a Pod with DNS tools:
+
+kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+
+2. Query the DNS server:
+
+/ # host kubernetes
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+Error from server (AlreadyExists): pods "dnstools" already exists
+
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm uninstall co^Cn kube-system
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl delete pod dnstools
+pod "dnstools" deleted
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+If you don't see a command prompt, try pressing enter.
+dnstools# host kubernetes
+;; connection timed out; no servers could be reached
+dnstools# exit
+^C[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm list -n kube-system
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+coredns kube-system     1               2025-03-30 15:50:53.857713588 +0100 BST deployed        coredns-1.39.2  1.12.0
+```
