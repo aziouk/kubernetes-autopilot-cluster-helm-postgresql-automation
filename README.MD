@@ -33,7 +33,6 @@ history -d $(history 4 | awk '{print $1}') && history -w
 
 
 # Install Method 1
-make sure you run it in a path you wont to clone the repo to;
 ```
 wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
 cat autoinstaller.sh
