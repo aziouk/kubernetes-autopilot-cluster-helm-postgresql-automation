@@ -133,7 +133,7 @@ You don't need to run above. all in one helm deploy postgres script will do this
 
 The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.6.0
 
-## 1️⃣ IMPORTANT Helm Now Uses Google Secret's Manager To Store Vault information
+## Helm Component now uses GSM To Store Vault information
 You will need to set the DB_USER and DB_PASSWORD once, which is then used by helm_deploy_postgres.sh autoinstall script. Theoretically this step isn't necessary again once it is set, but it is important for first time setup of the cluster, and that anyone working on the project understands this component correctly from a security standpoint.
 
 # Checking if GSM Is already set
