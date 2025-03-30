@@ -588,6 +588,42 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role="roles/owner"
 ```
 
+## fix-iam-policy-bindings.sh Helper Script for GSM Secrets
+Put together a little script, probably not a nice way of doing it, but it could make very longwinded configurations a bit simpler, and be a useful audit tool with some adaptation. What it does? It locks down permissios to an exclusive user, but it also checks who has exclusive access to. It could do more, but for now it takes 1 argument and 3 optionals as follows. If no project_id is provided it will use the local gcloud env var for the current project state.
+
+```
+# ./fix-iam-policy-bindings.sh
+Usage: ./fix-iam-policy-bindings.sh <SECRET_NAME> [SERVICE_ACCOUNT] [PROJECT_ID] [--]
+```
+
+## GSM Policy Binding automation purposes 
+You can use the script to apply automatically using the 4th -- argument. Careful though, it wont ask you before it writes the policy to the vars provided. Some form of checking should be introduced but it will probably end up in a template eventually in a different form. This script might have other uses like audit or consistency, or template generation helper function. I will have a think aout it. 
+
+Automation usage supports 5 flags be careful wth sanitize, it can be dangerous.
+```
+# ./fix-iam-policy-bindings.sh SECRET_NAME SERVICE_ACCOUNT PROJECT_ID [--] sanitize
+
+Fetching IAM policy for secret: DB_USER in project: predictx-postgrescluster...
+\nCurrent users with access to DB_USER:
+No explicit bindings found (may be inherited).
+\nEnter the service account to have exclusive access (e.g., service-account@project.iam.gserviceaccount.com): service-account@projectx.iam.gserviceaccount.com
+\nGenerated policy.json for exclusive access:
+{
+  "bindings": [
+    {
+      "role": "roles/secretmanager.secretAccessor",
+      "members": [
+        "user:service-account@projectx.iam.gserviceaccount.com"
+      ]
+    }
+  ]
+}
+
+```
+
+
+
+
 ## Terraform GKE Cluster and Helm Template Attempt 1
 
 I also created a custom template for Terraform and was able to build and communicate with the cluster. Sometimes though when it was run, because of the delay in cluster state coming available terraform can quit out, probably a delay can be added to stop that happening, because, it seems to affect the password generation run time and end up getting locked out of the postgresql database, as the password is needed to rerun automation for upgrades etc. This below template is only rough but it should work, and have spent a few hours testing, and after getting Google to increase quota on max cpu to 64, Networks to 20, and Disk quotas to 1500GB, the previous build errors are behind us.
