@@ -1074,7 +1074,7 @@ The issue is definitely kaliko i think. You can try running the following to get
 [root@localhost postgresql-bootstrap]# kubectl get events -n kube-system
 ```
 
-# Pertient error messages:
+# Pertinent error messages:
 
 ```
 28m         Warning   FailedCreatePodSandBox   pod/calico-node-vertical-autoscaler-6d4c965dc7-npmt6                 Failed to create pod sandbox: rpc error: code = Unknown desc = failed to setup network for sandbox "1724729e3ee714c0e788a992ecb5958a4f2e3534ddad5b0757d261d9a2b76fe1": plugin type="calico" failed (add): error getting ClusterInformation: resource does not exist: ClusterInformation(default) with error: clusterinformations.crd.projectcalico.org "default" not found
