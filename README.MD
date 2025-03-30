@@ -193,7 +193,7 @@ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/generate-db.sql
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
 ```
 ## Create Database, with credentials to named postgresdb
-You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update the database. 
+You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update user names, passwords or perform other SQL command sets. GSM is preffered for Security reasons. 
 ```
 [root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
 Launching Pod pg-client in the namespace postgresql ...
@@ -207,6 +207,8 @@ I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scri
 CREATE DATABASE predictx;
 CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
 GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
+
+# Confirm user added
 I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql
 CREATE DATABASE predictx;
 psql:/tmp/scripts/create-user.sql:1: ERROR:  database "predictx" already exists
