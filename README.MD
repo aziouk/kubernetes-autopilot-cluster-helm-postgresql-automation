@@ -175,7 +175,7 @@ You will need to set the DB_USER and DB_PASSWORD once, which is then used by hel
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
 ```
-## Connecting to cluster-db instance
+## Connecting to cluster-db instance with pg-client launcher
 
 ```
 #./terraform/scripts/launch-client.sh
