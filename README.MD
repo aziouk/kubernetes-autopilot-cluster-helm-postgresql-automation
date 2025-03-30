@@ -113,7 +113,10 @@ The Helm installer provided (helm_deploy_postgres.sh) will automate the docker i
 
 However a summary of the tasks it performs are included below for your reference. 
 
-##  1️⃣ IMPORTANT Google docs are outdated for Helm Versions 
+<p align="left">
+  <strong>⚠️ Warning:</strong> Google Cloud Documentation is using wrong matched versions and has unmaintained templates dependencies etc. Ensure you use these versions or build wont pull images properly from the repo due to them being missing from the vendor.
+</p>
+
 You need to check carefully the output before proceeding with helm istallation
 ```
 [root@localhost postgresql-bootstrap]# helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
@@ -151,6 +154,10 @@ gcloud secrets create DB_USER --replication-policy="automatic"
 
 echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
 echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
+
+# Recommend to sanitize the plaintext password entry from BASH History something like
+history -d $(history 4 | awk '{print $1}') && history -w
+
 ```
 
 # Running Helm Automation
