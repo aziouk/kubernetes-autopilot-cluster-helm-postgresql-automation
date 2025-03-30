@@ -146,15 +146,16 @@ gcloud secrets versions access latest --secret=DB_PASSWORD
 # Initaializing GSM for First time
 <p align="left">
   <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer. 
-Replace px-user-password and px-user with credentials. 
+Replace px-user-password and px-user with credentials. This must be ran before the autoinstaller. (todo: move to top of git readme) 
 </p>
 
 ```
 gcloud secrets create DB_PASSWORD --replication-policy="automatic"
 gcloud secrets create DB_USER --replication-policy="automatic"
-
+gcloud secrets create DB_NAME --replication-policy="automatic"
 echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
 echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
+echo -n "predictx" | gcloud secrets version DB_NAME --data-file=-
 
 # Recommend to sanitize the plaintext password entry from BASH History something like
 history -d $(history 4 | awk '{print $1}') && history -w

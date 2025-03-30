@@ -60,14 +60,24 @@ echo "==== HELM CHART ENDS HERE ====="
 # for this below section to work the gcloud secret must be predefined. Set it like so in gcloud;
 # gcloud secrets create DB_PASSWORD --replication-policy="automatic"
 # gcloud secrets create DB_USER --replication-policy="automatic"
+# gcloud secrets create DB_NAME --replication-policy="automatic"
 # echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
 # echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
+# echo -n "predictx" | gcloud secrets version DB_NAME --data-file=-
 
+#helm upgrade --install postgresql ./helm-chart \
+#  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
+#  --set db_password=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
+#  --set db_database=$(gcloud secrets versions access latest --secret=DB_DATABASE)
+
+
+#Corrections for Bitnami Helm Chart Installation with GSM secret store variables
+echo "==== HELM CHART NAMESPACE INSTALL BEGINS HERE ====="
 helm upgrade --install postgresql ./helm-chart \
-  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
-  --set db_password=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
-
-
+  --set auth.username=$(gcloud secrets versions access latest --secret=DB_USER) \
+  --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
+  --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
+echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
 
 
 #Output looks like
