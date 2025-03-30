@@ -897,3 +897,19 @@ us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgres-exporter  sha25
 [root@localhost postgresql-bootstrap]#
 
 ```
+
+This seems really perplexing, because a lot of changes were made. However on deeper inspection I see that gcr.io is being used. This seems not in accordance with the template, and I am not sure how this is controlled. I am begining to think that this is not a template issue and is something unique to GKE Cluster in Google Cloud. For good measure, I will delete the gcr.io repo in hope that this might do something, ,however the central1 artifact registry doesn't appear to be under my control, nor do the images that gke uses to build kube-dns. I really wonder where I can change this, because its not obvious at all.
+
+```
+[root@localhost postgresql-bootstrap]# kubectl describe pod kube-dns-94776b584-bgtwv -n kube-system | grep us-central1-artifactregistry.gcr.io
+    Image:         us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-kube-dns:1.25.0-gke.4@sha256:06837d58557deb555dfc26937cc45a32a0726a2e94f5b7c23a168273e544a077
+    Image ID:      us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-kube-dns@sha256:06837d58557deb555dfc26937cc45a32a0726a2e94f5b7c23a168273e544a077
+    Image:         us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-dnsmasq-nanny:1.25.0-gke.4@sha256:5c86940a8b0578cd97f113da10850956f55b66d88a8899dfc2c60ad3fdca3ea6
+    Image ID:      us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-dnsmasq-nanny@sha256:5c86940a8b0578cd97f113da10850956f55b66d88a8899dfc2c60ad3fdca3ea6
+    Image:         us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-sidecar:1.25.0-gke.4@sha256:e6adc0cf878edaa70778582684a97ac744e2e88b69de6f3d4b536e3dd68fe1fd
+    Image ID:      us-central1-artifactregistry.gcr.io/gke-release/gke-release/k8s-dns-sidecar@sha256:e6adc0cf878edaa70778582684a97ac744e2e88b69de6f3d4b536e3dd68fe1fd
+    Image:          us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector:20250317_2300_RC0@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19
+  Warning  Failed            59m (x5 over 62m)      kubelet            Failed to pull image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector:20250317_2300_RC0@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19": rpc error: code = NotFound desc = failed to pull and unpack image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19": failed to resolve reference "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19": us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19: not found
+  Normal   BackOff           3m37s (x259 over 62m)  kubelet            Back-off pulling image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector:20250317_2300_RC0@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19"
+```
+It at least looks like issue is on google GKE Side, because the other gke-releases pull fine except this one. What's different? nothing that I can see.... Can you?
