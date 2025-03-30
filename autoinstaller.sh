@@ -29,8 +29,8 @@ terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgresc
 
 echo "Initializing Helm Deploy Script"
 cd ../
-chmod +x helm_deploy_postgres.sh
-./helm_deploy_postgres.sh
+chmod +x helm_deploy_postgresql.sh
+./helm_deploy_postgresql.sh
 
 echo "Deprecated: Optional db automation tasks [this is not for prod]"
 echo "Info: this is deprecated, in place of GSM and Helm Chart vars, but script could be useful for populating data and running other tests etc"
