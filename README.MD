@@ -145,7 +145,7 @@ gcloud secrets versions access latest --secret=DB_PASSWORD
 
 # Initaializing GSM for First time
 <p align="left">
-  <strong>⚠️ Warning:</strong> **MUST** be run at least once for helm installer. 
+  <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer. 
 Replace px-user-password and px-user with credentials. 
 </p>
 
