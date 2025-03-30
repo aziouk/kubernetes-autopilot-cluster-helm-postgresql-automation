@@ -11,14 +11,14 @@ This resource consists of two components 1. Terraform Templates for **Google Kub
 
 ## ⚡ Quick Start
 Before using the Quick Start please view the prequisites just below, as they are needed for the scripts to succeed.
-# Auto Install - Manual Method
+# Install Method 1
 make sure you run it in a path you wont to clone the repo to;
 ```
 wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
 cat autoinstaller.sh
 chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 ```
-# Auto Install - Pipe to Bash Oneliner (DANGEROUS)
+# Install Method 2
 ```
 curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
