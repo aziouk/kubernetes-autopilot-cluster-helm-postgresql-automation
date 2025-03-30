@@ -68,7 +68,7 @@ echo "==== HELM CHART ENDS HERE ====="
 # gcloud secrets create DB_NAME --replication-policy="automatic"
 # echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
 # echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
-# echo -n "predictx" | gcloud secrets version DB_NAME --data-file=-
+# echo -n "predictx" | gcloud secrets versions add DB_NAME --data-file=-
 
 #helm upgrade --install postgresql ./helm-chart \
 #  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
