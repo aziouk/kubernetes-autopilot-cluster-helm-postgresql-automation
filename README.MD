@@ -808,7 +808,9 @@ I will come back to this hopefully and fix it.
 I fixed it. I wrote a new master-client for the 0th node postgresql-postgresql-ha-postgresql-0 to upload the necessary init db scripts. Theoretically client-connect pgclient script can be adapted to switch to any pod and upload the /tmp/scripts for workload/population on postgresql etc. I don't think this was a proper way of doing it, so we're using HELM automation for now, which works to carry out this portion of the credential and db set vars.
 
 
-# Documenting a Strange GKE Issue
+# Documenting a Strange GKE Kube-DNS Build Issue
+
+The DNS failure stops the postgresql-ha group from communicating with eachother.
 
 After succesfully completing the automation and doing a dry run, everything worked, except that when got to helm automation a few vars weren't passed as expected. However, that is when the entire build automation for gke-release stopped working without a good explanation. To eliminate a permissions issue, I use the main owner account of the project_id and check the service permissions are added, which they are. It seems artfact register read permissions are there.
 3 out of the 4 kubedns containers for the 3 ha regions come up, but the 4th one doesnt because GKE refers to a completely non existent repo image. How frustrating. Everything works in the automation but google Cloud's own repo images does not. Here is how I went about debugging it. A lengthy process...
