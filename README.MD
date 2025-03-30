@@ -862,4 +862,38 @@ I will have to re-deploy the cluster step by step again, and troubleshoot whethe
 
 Confirm that GKE pulling non existent image us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector, ErrImagePull. Unsure what to do because template changes or IAM permissions shouldnt cause this. If it was the repo read permissions for the service account the other 3 contaiers wouldnt have pulled their images from the same path (gke-release/gke-release). 
 
-It seems like my limits have been reduced the error is something to do with "  Normal   NotTriggerScaleUp  75s   cluster-autoscaler                     pod didn't trigger scale-up: 5 max cluster cpu, memory limit reached". I have looked in Google Quota Limits carefully for all mentions of cluster and 5 max cluster cpu, but I am confused what quota limit it is refering to. One source of frustration is there appears to be no way to find what quota limits have been recently hit, denying builds, so that is very unhelpful and difficult to use, because one does not have a way of parsing the logs to identify specifically what the var is. As a cloud provider I would be ashamed if I was not able to provide the limit var context for which the soft/hard limit was associated. 
+It seems like my limits have been reduced the error is something to do with "  Normal   NotTriggerScaleUp  75s   cluster-autoscaler                     pod didn't trigger scale-up: 5 max cluster cpu, memory limit reached". I have looked in Google Quota Limits carefully for all mentions of cluster and 5 max cluster cpu, but I am confused what quota limit it is refering to. One source of frustration is there appears to be no way to find what quota limits have been recently hit, denying builds, so that is very unhelpful and difficult to use, because one does not have a way of parsing the logs to identify specifically what the var is. As a cloud provider I would be ashamed if I was not able to provide the limit var context for which the soft/hard limit was associated.
+
+## Checking closely the Bitnami and Helm Image Automation
+
+Here we are inspecting the output of helm
+```
+helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" | grep debian
+```
+Output looks like revealing the versions:
+```
+          image: us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/pgpool:4.6.0-debian-12-r2
+          image: us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgresql-repmgr:16.6.0-debian-12-r3
+          image: us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgres-exporter:0.17.1-debian-12-r2
+```
+
+## Maually Verifying the Images match Helm Template
+```
+[root@localhost postgresql-bootstrap]# gcloud artifacts docker images list us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/pgpool --include-tags --filter="tags=4.6.0-debian-12-r2"
+Listing items under project predictx-postgrescluster, location us, repository main.
+
+IMAGE                                                           DIGEST                                                                   TAGS                CREATE_TIME          UPDATE_TIME          SIZE
+us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/pgpool  sha256:8a0dc3e4dc5c75fd7a0a6825906b4bd010e60b4c1ff39802106603a5c3d1ca2c  4.6.0-debian-12-r2  2025-03-30T10:37:16  2025-03-30T10:37:16  70386751
+[root@localhost postgresql-bootstrap]# gcloud artifacts docker images list us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgresql-repmgr --include-tags --filter="tags=16.6.0-debian-12-r3"
+Listing items under project predictx-postgrescluster, location us, repository main.
+
+IMAGE                                                                      DIGEST                                                                   TAGS                 CREATE_TIME          UPDATE_TIME          SIZE
+us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgresql-repmgr  sha256:13c55cc0b94333f8f87741d6c3c509ccaaddd599a75b425591ba757e500d6e9a  16.6.0-debian-12-r3  2025-03-30T10:36:54  2025-03-30T10:36:54  111648819
+[root@localhost postgresql-bootstrap]# gcloud artifacts docker images list us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgres-exporter --include-tags --filter="tags=0.17.1-debian-12-r2"
+Listing items under project predictx-postgrescluster, location us, repository main.
+
+IMAGE                                                                      DIGEST                                                                   TAGS                 CREATE_TIME          UPDATE_TIME          SIZE
+us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgres-exporter  sha256:8365c34d614424bdbb0d4347fcb21456fb2ae66b8cdcf1cc2707e14ed9dcc0fe  0.17.1-debian-12-r2  2025-03-30T10:37:01  2025-03-30T10:37:01  50971090
+[root@localhost postgresql-bootstrap]#
+
+```
