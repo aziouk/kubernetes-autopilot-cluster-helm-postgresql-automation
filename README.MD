@@ -1062,12 +1062,15 @@ CoreDNS is now running in the cluster as a cluster-service.
 It can be tested with the following:
 
 1. Launch a Pod with DNS tools:
-
+```
 kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+```
 
 2. Query the DNS server:
-
-# host kubernetes
+```
+host kubernetes
+```
+## Starting a DNStool console to Troubleshoot KUBE DNS Failure
 ```
 [root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
 Error from server (AlreadyExists): pods "dnstools" already exists
