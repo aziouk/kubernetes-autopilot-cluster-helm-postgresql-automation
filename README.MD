@@ -9,10 +9,10 @@ Future versions of this repository will implement only kubernetes-engine-samples
 
 This resource consists of two components 1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** and 2. **Helm charts** Autoinstaller for bootstrapping Terraform Built GKE Cluster in the same namespace.  
 
-## ⚡ Quick Start
+# ⚡ Quick Start
 Before using the Quick Start installers please view the prequisites and GSM Setup needed for the automation components to run securely. It is important to understand that automation expects <mark> Google Secrets Manager must be first initialized</mark> and without that being done installs of helm postgresql chart on the cluster will fail. 
 
-# Initaializing GSM for First time
+## Initaializing GSM for First time
 <p align="left">
   <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer to succeed. Helm Chart autoinstaller automation uses credentials from GSM to support deployment, without it builds will fail.
 Replace px-user-password, px-user and px-database with desired credentials. This must be ran before the autoinstaller. 
