@@ -72,7 +72,7 @@ roles/viewer
 </p>
 
 
-For details refer to the Google Cloud reference [here](https://cloud.google.com/kubernetes-engine/docs/tutorials/stateful-workloads/postgresql#autopilot), which contains significant inaccuracies, typos, and unmaintained deprecations for example <mark>role/artifactregistry.Admin</mark> should be prefixed by <mark>roles/</mark> not role/ and secondly is actually named <mark>artifactregistry.repoAdmin</mark> not artifactregistry.repo</mark> as of 28/03/2025. It seems that the Google Clouds SDK own documentation repository is floating unworkable example templates which are not maintained by anyone, or it is just not a big priority for them.
+For details refer to the Google Cloud reference [here](https://cloud.google.com/kubernetes-engine/docs/tutorials/stateful-workloads/postgresql#autopilot), which contains significant inaccuracies, typos, and unmaintained deprecations for example <mark>role/artifactregistry.Admin</mark> should be prefixed by <mark>roles/</mark> not role/. Some api names are wrong, like  <mark>artifactregistry.repoAdmin</mark> is used now and not artifactregistry.repo</mark> as of 28/03/2025. It seems that the Google Clouds SDK own documentation repository is floating unworkable example templates which are not maintained by anyone, or it is just not a big priority for them. Perhaps there are templats elsewhere that do not suffer from these issues and the maintainer forgot to deprecate the reference?
 
 If google unit tested their referenced templates against their own cloud docs the trouble could be probably avoided for many. Watch out for automation variables becoming empty lists, due to google changing options exposed in their api, breaking their unmaintained templates.
 
