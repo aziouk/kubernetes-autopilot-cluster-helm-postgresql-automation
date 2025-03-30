@@ -15,7 +15,7 @@ Before using the Quick Start installers please view the prequisites and GSM Setu
 # Initaializing GSM for First time
 <p align="left">
   <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer to succeed. Helm Chart autoinstaller automation uses credentials from GSM to support deployment, without it builds will fail.
-Replace px-user-password and px-user with credentials. This must be ran before the autoinstaller. 
+Replace px-user-password, px-user and px-database with desired credentials. This must be ran before the autoinstaller. 
 </p>
 
 ```
@@ -24,7 +24,7 @@ gcloud secrets create DB_USER --replication-policy="automatic"
 gcloud secrets create DB_NAME --replication-policy="automatic"
 echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
 echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
-echo -n "predictx" | gcloud secrets version DB_NAME --data-file=-
+echo -n "px-database" | gcloud secrets version DB_NAME --data-file=-
 
 # Recommend to sanitize the plaintext password entry from BASH History something like
 history -d $(history 4 | awk '{print $1}') && history -w
