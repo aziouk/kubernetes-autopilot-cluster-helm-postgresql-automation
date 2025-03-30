@@ -51,10 +51,24 @@ helm -n postgresql template postgresql . \
   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 echo "==== HELM CHART ENDS HERE ====="
 
-# Install Chart
+# Install Chart Insecure Without Adding User
 
-helm -n postgresql upgrade --install postgresql . \
-    	--set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
+#helm -n postgresql upgrade --install postgresql . \
+#    	--set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
+
+# Alternative 1 SECURING HELM DBMS Installation Procedure using Google Secret Store
+# for this below section to work the gcloud secret must be predefined. Set it like so in gcloud;
+# gcloud secrets create DB_PASSWORD --replication-policy="automatic"
+# gcloud secrets create DB_USER --replication-policy="automatic"
+# echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
+# echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
+
+helm upgrade --install postgresql ./helm-chart \
+  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
+  --set db_password=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
+
+
+
 
 #Output looks like
 #NAMESPACE: postgresql
