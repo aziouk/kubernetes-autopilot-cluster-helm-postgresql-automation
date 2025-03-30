@@ -239,16 +239,11 @@ postgres=# SHOW hba_file;
 (1 row)
 
 ```
-# Troubleshooting password not updating
-Found cause: bad namespace export was lost, now fixed.
+# Confirming Database added by sql task script (now deprecated) 
 
-Solution is
 ```
 [root@localhost scripts]# kubectl exec -it pg-client -n postgresql -- /bin/bash
 I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
-postgres=# \qu
-invalid command \qu
-Try \? for help.
 postgres=# \du
                                    List of roles
  Role name |                         Attributes                         | Member of
