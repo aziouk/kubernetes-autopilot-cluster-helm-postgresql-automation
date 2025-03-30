@@ -142,7 +142,8 @@ gcloud secrets versions access latest --secret=DB_PASSWORD
 # Initaializing GSM for First time
 <p align="left">
   <strong>⚠️ Warning:</strong> This **MUST** be run at least once for helm automation to succeed installing postgres. Once it is set in the GSM the automation will continue to use it automatically.
-Replace px-user-password and px-user with your desired credentials ensuring password is at least 12 characters in length and alphanumeric generated with at least one special character, capitalisation, numbers and digits. </p>
+Replace px-user-password and px-user with your desired credentials ensuring password is at least 12 characters in length and alphanumeric generated with at least one special character, capitalisation, numbers and digits. 
+</p>
 ```
 gcloud secrets create DB_PASSWORD --replication-policy="automatic"
 gcloud secrets create DB_USER --replication-policy="automatic"
@@ -150,6 +151,8 @@ gcloud secrets create DB_USER --replication-policy="automatic"
 echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
 echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
 ```
+
+# Running Helm Automation
 
 ```bash
 chmod +x helm_deploy_postgres.sh
