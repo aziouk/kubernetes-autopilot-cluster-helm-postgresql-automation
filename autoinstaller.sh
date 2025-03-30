@@ -21,7 +21,7 @@ terraform -chdir=terraform/gke-standard init -var project_id=predictx-postgrescl
 
 echo "Starting Terraform apply..."
 #comment this line when doing unsupervised installations
-terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster
+#terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster
 #uncoment this line to auto-approve template (WARNING: DANGER) for unsupervised installations
 terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster --auto-approve
 
