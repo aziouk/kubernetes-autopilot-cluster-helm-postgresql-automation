@@ -168,7 +168,7 @@ chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
 ```
 ## Connecting to cluster-db instance
-#
+
 ```
 #./terraform/scripts/launch-client.sh
 ./scripts/launch-client.sh
@@ -185,7 +185,7 @@ kubectl exec -it pg-client -n postgresql -- /bin/bash
 ```
 
 ## Populating, Testing/Benchmarking Database
-#
+
 ```bash
 #input generated db for testing
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/generate-db.sql
