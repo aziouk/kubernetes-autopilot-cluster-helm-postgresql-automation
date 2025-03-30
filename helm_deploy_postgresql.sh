@@ -1,4 +1,4 @@
-echo "BEGIN>> Automation for Helm postgresql chart for GKE Cluster Autopilot"
+echo "BEGIN>> Automation for Helm postgresql chart for GKE Cluster Std. / GKE Cluster Autopilot"
 
 
 # set environment
@@ -24,21 +24,26 @@ gcloud auth configure-docker us-docker.pkg.dev
 
 
 # Verify the packages are stored in repo
+echo "Packages added to the repo were as follows..."
 gcloud artifacts docker images list us-docker.pkg.dev/$PROJECT_ID/main \
     --format="flattened(package)"
 
 # Configure Credentials for kubectl cli access of primary cluster
 
+echo "Getting credentials for cluster..."
 gcloud container clusters get-credentials $SOURCE_CLUSTER \
 --region=$REGION --project=$PROJECT_ID
 
+echo "Exporting Namespace for $PROJECT_ID, $SOURCE_CLUSTER..."
 export NAMESPACE=postgresql
 kubectl create namespace $NAMESPACE
 
+
 # increase replicas to 3set PodAntiAffinity with requiredDuringSchedulingIgnoredDuringExecution and topologykey:"topology.kubernetes.io/zone"
-kubectl -n $NAMESPACE apply -f scripts/prepareforha.yaml
+# used by autopilot and big replica sets only danger [replication is v. expensive] multiplies cloud size etc.
+# kubectl -n $NAMESPACE apply -f scripts/prepareforha.yaml
 
-
+echo "Updating HELM Dependencies"
 # update HELM dependencies
 cd helm/postgresql-bootstrap
 
@@ -72,13 +77,23 @@ echo "==== HELM CHART ENDS HERE ====="
 
 
 #Corrections for Bitnami Helm Chart Installation with GSM secret store variables
-echo "==== HELM CHART NAMESPACE INSTALL BEGINS HERE ====="
+echo "==== HELM CHART INSTALL BEGINS HERE, for $PROJECT_ID.$SOURCE_CLUSTER====="
 helm upgrade --install postgresql ./helm-chart \
   --set auth.username=$(gcloud secrets versions access latest --secret=DB_USER) \
   --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
   --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
 echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
 
+# INSECURE PROCESS REMOVE FROM PROD BUILDS DANGER DANGER
+# could be cool though if got cluster dns cname and ip and stuff
+echo "==== BEGIN BUILD CREDENTIALS INFO===="
+printf "auth.username: "
+echo $(gcloud secrets versions access latest --secret=DB_USER)
+printf "auth.password: "
+echo $(gcloud secrets versions access latest --secret=DB_PASSWORD)
+printf "auth.database: "
+echo $(gcloud secrets versions access latest --secret=DB_NAME)
+echo "==== END BUILD CREDENTIALS INFO ===="
 
 #Output looks like
 #NAMESPACE: postgresql
