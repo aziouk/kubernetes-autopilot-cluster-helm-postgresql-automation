@@ -108,7 +108,7 @@ For details refer to the Google Cloud reference [here](https://cloud.google.com/
 
 If google unit tested their referenced templates against their own cloud docs the trouble could be probably avoided for many. Watch out for automation variables becoming empty lists, due to google changing options exposed in their api, breaking their unmaintained templates.
 
-# Manual Installation Details
+## Manual Installation Details
 Setup your environment using 
 ```git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
 cd kubernetes-autopilot-cluster-helm-postgresql-automation/gke-stateful-postgres
@@ -116,7 +116,7 @@ cd kubernetes-autopilot-cluster-helm-postgresql-automation/gke-stateful-postgres
 then follow the below instructions carefully to carry out manual installation of the automation.
 
 
-# Creating the necessary IAM bindings
+## Creating the necessary IAM bindings
 Replacing <mail> with the desired service account user
 ``` 
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/storage.objectViewer
@@ -128,7 +128,7 @@ gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/serviceusage.serviceUsageAdmin
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/iam.serviceAccountAdmin
 ```
-# Install GKE Region Cluster with Autopilot (flakey)
+## Install GKE Regional (or Zonal) Cluster with Autopilot (flakey)
 By using autopilot it is possible to build a multi region cluster with a redundant backup and nodes in seperate regions, as well as receive additional data for logging and analytics.
 ```
 terraform -chdir=terraform/gke-autopilot init -var project_id=predictx-postgrescluster
@@ -137,7 +137,7 @@ terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgres
 ```
 
 
-# Install GKE Cluster without Autopilot (working)
+## Install GKE Regional/Zonal Cluster without Autopilot (working)
 ```
 terraform -chdir=terraform/gke-standard init
 terraform -chdir=terraform/gke-standard plan -var project_id=$PROJECT_ID
@@ -161,7 +161,7 @@ The google doc dependancies are out of date, and these pulls will fail to wrong 
 ./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
 ./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
 ```
-You don't need to run above. all in one helm deploy postgres script will do this for you. 
+You don't need to run above. The all in one helm deploy postgres script will do this for you. 
 
 The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.6.0
 
@@ -169,13 +169,13 @@ The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.
 You will need to set the DB_USER and DB_PASSWORD once, which is then used by helm_deploy_postgres.sh autoinstall script. Theoretically this step isn't necessary again once it is set, but it is important for first time setup of the cluster, and that anyone working on the project understands this component correctly from a security standpoint.
 
 
-# Running Helm Automation
+## Running Helm Automation
 
 ```bash
 chmod +x helm_deploy_postgres.sh
 ./helm_deploy_postgres.sh
 ```
-## Connecting to cluster-db instance with pg-client launcher
+##Connecting to cluster-db instance with pg-client launcher
 
 ```
 #./terraform/scripts/launch-client.sh
@@ -216,7 +216,7 @@ CREATE DATABASE predictx;
 CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
 GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
 
-# Confirm user added
+## Confirm user added
 I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql
 CREATE DATABASE predictx;
 psql:/tmp/scripts/create-user.sql:1: ERROR:  database "predictx" already exists
@@ -227,8 +227,7 @@ I have no name!@pg-client:/$ quit
 bash: quit: command not found
 ```
 
-This will not be permanent, to make it permanent we need to update the pg_hba filee, lets find where it is located:
-bitnami runs as a non root user which makes this problematic.
+This may not be permanent, to make it permanent we need to make sure pg_hba passwd gts updated:
 ```
 I have no name!@pg-client:/$ kubectl exec -it pg-client -n postgresql -- /bin/bash
 I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
