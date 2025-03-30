@@ -913,3 +913,50 @@ This seems really perplexing, because a lot of changes were made. However on dee
   Normal   BackOff           3m37s (x259 over 62m)  kubelet            Back-off pulling image "us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector:20250317_2300_RC0@sha256:a34349ad63db36e11c2055578c3d2ef08bee75be14a2ee3cb244d9ddf74f0c19"
 ```
 It at least looks like issue is on google GKE Side, because the other gke-releases pull fine except this one. What's different? nothing that I can see.... Can you?
+
+I wiped the gcr.io repo then rerun the kube-dns roll
+```
+[root@localhost postgresql-bootstrap]# kubectl rollout restart deployment/kube-dns --namespace=kube-system
+Warning: spec.template.metadata.annotations[scheduler.alpha.kubernetes.io/critical-pod]: non-functional in v1.16+; use the "priorityClassName" field instead
+Warning: spec.template.metadata.annotations[seccomp.security.alpha.kubernetes.io/pod]: non-functional in v1.27+; use the "seccompProfile" field instead
+deployment.apps/kube-dns restarted
+```
+
+and here we have exactly the same problem.
+```[root@localhost postgresql-bootstrap]# kubectl get pods -l k8s-app=kube-dns -n kube-system
+NAME                        READY   STATUS             RESTARTS   AGE
+kube-dns-74574dcb7f-kvh89   3/4     ImagePullBackOff   0          9m16s
+kube-dns-74fc497549-bdsmc   3/4     ErrImagePull       0          63s
+kube-dns-94776b584-2ntq6    3/4     ImagePullBackOff   0          69m
+```
+
+I really cannot understand why this is happening or what feature about my build could possibly affect this. I am not too familiar with Google Cloud product though, perhaps other things can cause DNS failure like this. Such as Quota. I see no way in GC to ascertain easily the most recently quota's exceeded, or, quotas that werent exceeded, because the slot_limit threshold wasn't triggered because it would not fit within the quota. So this means the quota limit could be really small, and because the slot wont fit, and its not in use, ,can't trace it down easily in google quota. I suspect these sort of issues are easier to resolve when one has a lot more familiarity with the build process. But, this really is a shame, because the automation for the most part completely works. I will be honest, after nearly completing all the objectives, these problems were serious grief, as I would have liked to spend more time exposing it with a LB, and safer security groups and spent more time on autopilot :(. 
+
+Although it may not be proper, I wonder if deleting them and rerolling the deployment might help.
+
+```
+[root@localhost postgresql-bootstrap]# kubectl rollout restart deployment/kube-dns --namespace=kube-system
+Warning: spec.template.metadata.annotations[scheduler.alpha.kubernetes.io/critical-pod]: non-functional in v1.16+; use the "priorityClassName" field instead
+Warning: spec.template.metadata.annotations[seccomp.security.alpha.kubernetes.io/pod]: non-functional in v1.27+; use the "seccompProfile" field instead
+deployment.apps/kube-dns restarted
+[root@localhost postgresql-bootstrap]# kubectl rollout restart ^Cployment/kube-dns --namespace=kube-system
+[root@localhost postgresql-bootstrap]# kubectl scale --replicas=0 deployment/kube-dns --namespace=kube-system
+Warning: spec.template.metadata.annotations[scheduler.alpha.kubernetes.io/critical-pod]: non-functional in v1.16+; use the "priorityClassName" field instead
+Warning: spec.template.metadata.annotations[seccomp.security.alpha.kubernetes.io/pod]: non-functional in v1.27+; use the "seccompProfile" field instead
+deployment.apps/kube-dns scaled
+[root@localhost postgresql-bootstrap]# kubectl get pods -l k8s-app=kube-dns -n kube-system
+NAME                        READY   STATUS        RESTARTS   AGE
+kube-dns-74574dcb7f-kvh89   3/4     Terminating   0          14m
+kube-dns-74fc497549-bdsmc   3/4     Terminating   0          6m
+kube-dns-85ddb76787-zb8m9   3/4     Terminating   0          38s
+```
+
+Though it appears not
+```
+[root@localhost postgresql-bootstrap]# kubectl get pods -l k8s-app=kube-dns -n kube-system
+NAME                        READY   STATUS             RESTARTS   AGE
+kube-dns-85ddb76787-6nnmr   3/4     ErrImagePull       0          67s
+kube-dns-85ddb76787-lmfsh   3/4     ImagePullBackOff   0          67s
+```
+
+It is just a really weird error, and I spent several hours trying to look for the cause, despite everything being right and previously working multiple times, it is as if DNS suddenly stopped working. Perhaps IAM or permissions is causing misleading error. Also, why does this only appear to impact db1? Is it the use of the service account? I suspect so actually. I will try rebuilding without the service account to rule this out;
