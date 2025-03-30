@@ -1,13 +1,13 @@
-# 🚀 Deploy PostgreSQL on GKE with Terraform 
+# 🚀 Deploy PostgreSQL on GKE with Terraform
 
 ## What this does
 This provides terraform and helm automation templates for multi region, redundant, stateful Google Cloud GKE Cluster, for PostgreSQL using Helm Charts and Docker-Kubernetes as a deployment strategy.
 
-This github repo collection uses the reference samples from google cloud. We have forked it at https://github.com/aziouk/kubernetes-engine-samples and that fork is a subrepo of this repo. The GoogleCloudPlatform samples repo can be found [here](https://github.com/GoogleCloudPlatform/kubernetes-engine-samples).  
+This github repo collection uses the reference samples from google cloud. We have forked it at https://github.com/aziouk/kubernetes-engine-samples and that fork is a subrepo of this repo. The GoogleCloudPlatform samples repo can be found [here](https://github.com/GoogleCloudPlatform/kubernetes-engine-samples).
 
 Future versions of this repository will implement only kubernetes-engine-samples subrepo, and the gke-stateful-postgres folder in the root of this repository will disappear, and reappear at <mark>kubernetes-engine-samples/databases/gke-stateful-postgres</mark> instead. This will ensure changes will be more consistent and the subrepo can be used for global changes.
 
-This resource consists of two components 1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** and 2. **Helm charts** Autoinstaller for bootstrapping Terraform Built GKE Cluster in the same namespace.  
+This resource consists of two components 1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** and 2. **Helm charts** Autoinstaller for bootstrapping Terraform Built GKE Cluster in the same namespace.
 
 # ⚡ Quick Start
 Before using the Quick Start installers please view the prequisites and GSM Setup needed for the automation components to run securely. It is important to understand that automation expects <mark> Google Secrets Manager must be first initialized</mark> and without that being done installs of helm postgresql chart on the cluster will fail. If you have initialized GSM and installed the prequirements you can proceed immediately to the [install section](https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/tree/master?tab=readme-ov-file#install-method-1)
@@ -15,7 +15,7 @@ Before using the Quick Start installers please view the prequisites and GSM Setu
 ## Initaializing GSM for First time
 <p align="left">
   <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer to succeed. Helm Chart autoinstaller automation uses credentials from GSM to support deployment, without it builds will fail.
-Replace <mark>px-user-password</mark>, <mark>px-user</mark> and <mark>px-database</mark> with desired credentials. This must be ran *before* the autoinstaller. 
+Replace <mark>px-user-password</mark>, <mark>px-user</mark> and <mark>px-database</mark> with desired credentials. This must be ran *before* the autoinstaller.
 </p>
 
 ```
@@ -32,7 +32,7 @@ history -d $(history 4 | awk '{print $1}') && history -w
 ```
 The above could be handled by the setenv install (please request this if needed), but it would involve automation scripts containing sensitive credentials in plaintext. It is much better not to use setenv, but it is trivial to add automation to set random variables at runtime instead if this is desired. For example if the deploy scripts are on a bastion which self destroys, then it would be potentially acceptable to include credentials in scripts, but best practice makes this seem less desirable approach. Perhaps if setenv had a pre-encrypted credential values added to it, then the credentials could be ported with the template, streamlined for special circumstances, but this is not recommended, as the cipher of the variable could be more unreliable than common, maintained secret stores like GSM. Also it creates a larger burden on maintenance of tooling associated with that. It is not recommended to manage this via a bucket with a helper terraform script for this reason and GSM is favored in this implementation.
 
-The third "middle way approach" is to generate random username, password, and database credential variales at run-time and store them in GSM programatically, and then have the automation refer to the given gsm secret vars. At the end of the helm build calls can be made to reveal the DB_PASSWORD, DB_USER and DB_NAME in GSM used by Helm Chart upgrade installer. This change would require only trivial/arbitrary changes if it is desired instead of pre-assigned credentials, the generative approach would not expose any plaintext credentials, or take input credentials from anywhere, or require manual initialisation of GSM or keystore. For consistency the latter is probably most suitable in most prod and dev scenarios. 
+The third "middle way approach" is to generate random username, password, and database credential variales at run-time and store them in GSM programatically, and then have the automation refer to the given gsm secret vars. At the end of the helm build calls can be made to reveal the DB_PASSWORD, DB_USER and DB_NAME in GSM used by Helm Chart upgrade installer. This change would require only trivial/arbitrary changes if it is desired instead of pre-assigned credentials, the generative approach would not expose any plaintext credentials, or take input credentials from anywhere, or require manual initialisation of GSM or keystore. For consistency the latter is probably most suitable in most prod and dev scenarios.
 
 # Checking if GSM Is already set
 
@@ -76,7 +76,7 @@ Ensure you have the following installed:
 
 ### ✅ Enable Required Google Cloud APIs
 Run the following command to enable required APIs:
-``` 
+```
 gcloud services enable \
   compute.googleapis.com \
   container.googleapis.com \
@@ -118,7 +118,7 @@ then follow the below instructions carefully to carry out manual installation of
 
 ## Creating the necessary IAM bindings
 Replacing <mail> with the desired service account user
-``` 
+```
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/storage.objectViewer
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/logging.logWriter
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/artifactregistry.reader
@@ -145,7 +145,7 @@ terraform -chdir=terraform/gke-standard plan -var project_id=$PROJECT_ID
 terraform -chdir==terraform/gke-standard apply -var project_id=$PROJECT_ID
 ```
 ## Helm Installer for PostgreSQL
-The Helm installer provided by helm_deploy_postgres.sh will automate the docker image pull and installation to the GKE Cluster using the setenv project variables and project namespace in kubectl. If you have issues with image installations check your docker status in systemctl status docker. Even though your pushing to remote, you still need a docker socket locally on the controlling machine to communicate with the remote instances in gcloud forming the cluster. 
+The Helm installer provided by helm_deploy_postgres.sh will automate the docker image pull and installation to the GKE Cluster using the setenv project variables and project namespace in kubectl. If you have issues with image installations check your docker status in systemctl status docker. Even though your pushing to remote, you still need a docker socket locally on the controlling machine to communicate with the remote instances in gcloud forming the cluster.
 
 <p align="left">
   <strong>⚠️ Warning:</strong> Google Cloud Documentation Examples has unmaintained/stale templates, instructions for helm dependencies scripts can not be trusted as correct.
@@ -162,7 +162,7 @@ The google doc dependancies are out of date, and these pulls will fail to wrong 
 ./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
 ./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
 ```
-You don't need to run above. The all in one helm deploy postgres script will do this for you. 
+You don't need to run above. The all in one helm deploy postgres script will do this for you.
 
 The goal is to make sure app.kubernetes version matches, I think, for pgpool, 4.6.0
 
@@ -202,7 +202,7 @@ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/generate-db.sql
 psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
 ```
 ## Create Database, with credentials to named postgresdb
-You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update user names, passwords or perform other SQL command sets. GSM is preffered for Security reasons. 
+You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update user names, passwords or perform other SQL command sets. GSM is preffered for Security reasons.
 ```
 [root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
 Launching Pod pg-client in the namespace postgresql ...
@@ -239,7 +239,7 @@ postgres=# SHOW hba_file;
 (1 row)
 
 ```
-## Checking User Tables 
+## Checking User Tables
 
 ```
 [root@localhost scripts]# kubectl exec -it pg-client -n postgresql -- /bin/bash
@@ -356,7 +356,7 @@ cd monitoring/alerting/
 terraform init
 terraform plan -var project_id=$PROJECT_ID -var email_address=$EMAIL
 terraform apply -var project_id=$PROJECT_ID -var email_address=$EMAIL
-``` 
+```
 
 ## Testing Alerts
 
@@ -471,12 +471,12 @@ select COUNT(*) from tb02;
 make sure you switch the environment properly to get the correct environment or you will face errors like psql: error: local user with ID 1001 does not exist
 
 
-## Procedure for Debugging Common Build Failures 
+## Procedure for Debugging Common Build Failures
 To obtain debug information and pull status, affiity status and various other deubgging data pertinent to resolving common errors use;
 ```
 # Describe all pods templates
 kubectl -n postgresql describe pods
-# Overview of 'pods' in projects NAMESPACE 
+# Overview of 'pods' in projects NAMESPACE
 kubectl get all -n $NAMESPACE
 # Check Kube DNS System
  kubectl get events -n kube-system
@@ -495,11 +495,11 @@ Using GSM is more secure than storing secrets in a GCS bucket because:
 - 🔄 You can version secrets and rotate credentials easily.
 
 
-## Enable the Secret Manager API  
+## Enable the Secret Manager API
 
-Before running Terraform, enable the Secret Manager API:  
+Before running Terraform, enable the Secret Manager API:
 
-```bash
+```
 gcloud services enable secretmanager.googleapis.com
 ```
 
@@ -532,26 +532,27 @@ There are two main components at present, the first piece of the automation is <
 
 ## Comments
 
-I do not have a lot of experience with Terraform and Helm Devops on GCP, and this my first adventure in it, but the scripts split up this way should be helpful for anyone wanting to understand, build or experiment with google GKE Clusters with and without autopilot, with and without DR, and with postgressql or any other chart. 
+I do not have a lot of experience with Terraform and Helm Devops on GCP, and this my first adventure in it, but the scripts split up this way should be helpful for anyone wanting to understand, build or experiment with google GKE Clusters with and without autopilot, with and without DR, and with postgressql or any other chart.
 
 ## Common Errors
 
 Unfortunately because my account has several quota limits with the number of times I can spin up and down automation. I reached the limit of my quota pretty fast. Here are some common errors I received before I requested google to increase my cpu quota region wide to a value of 64, and disk size to a value of 1500GB.
 
-* Pod is blocking scale down because it doesn't have enough pod disruption budget (PDB) 
-* Pod is blocking scale down because its controller can't be found. 
-* Can't scale up because node auto-provisioning can't provision a node pool for the pod if it would exceed resource limits. 
-* Can't scale up because node auto-provisioning can't provision a node pool for a pod with failing predicates 
-* Can't scale up a node pool because of a failing scheduling predicate 
-* Can't scale up due to exceeded quota 
+* Pod is blocking scale down because it doesn't have enough pod disruption budget (PDB)
+* Pod is blocking scale down because its controller can't be found.
+* Can't scale up because node auto-provisioning can't provision a node pool for the pod if it would exceed resource limits.
+* Can't scale up because node auto-provisioning can't provision a node pool for a pod with failing predicates
+* Can't scale up a node pool because of a failing scheduling predicate
+* Can't scale up due to exceeded quota
 
+```
 │ Error: error creating NodePool: googleapi: Error 403: Insufficient project quota to satisfy request: resource "CPUS_ALL_REGIONS": request requires '12.0' and is short '4.0'. project has a quota of '32.0' with '8.0' available. View and manage quotas at https://console.cloud.google.com/iam-admin/quotas?usage=USED&project=predictx-postgrescluster.
 
 │ Error: Error waiting for resuming GKE node pool:
 │       - all cluster resources were brought up, but: only 1 nodes out of 3 have registered; cluster may be unhealthy
 │       - insufficient quota to satisfy the request: Not all instances running in IGM after 30.915058557s. Expected 1, running 0, transitioning 1. Current errors: [GCE_QUOTA_EXCEEDED]: Instance 'gke-cluster-db1-pool-db-bbafcd47-mpx5' creation failed: Quota 'CPUS' exceeded.  Limit: 24.0 in region us-central1
 │       - insufficient quota to satisfy the request: Not all instances running in IGM after 31.08953717s. Expected 1, running 0, transitioning 1. Current errors: [GCE_QUOTA_EXCEEDED]: Instance 'gke-cluster-db1-pool-db-2c5de97c-ztj3' creation failed: Quota 'CPUS' exceeded.  Limit: 24.0 in region us-central1.
-
+```
 
 <mark> Solution: build a smaller cluster of 1 node only </mark> or <mark> Increase Quota Limits with GCP </mark> alternatively in my case, since this is for demo purposes only I decreased cpu limit to 100m, from 500m and replicas from 3 to 2 in the prepareforha.yaml script and main.tf provided by the google gke cluster docs samples.
 
@@ -561,7 +562,8 @@ It seems that the way that replicas work in zonal regions, building 3 replica in
 
 This next section is TLDR and would not be included in repo usually unless it was a wiki-foo.
 
-## Creating a Service Account 
+## Creating a Service Account
+
 ```
 gcloud iam service-accounts create my-service-account \
   --description="Service account for GKE Cluster/Helm Autoinstaller with full access" \
@@ -569,12 +571,15 @@ gcloud iam service-accounts create my-service-account \
 ```
 
 ## Creating owner permissions
+
 ```
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:my-service-account@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/owner"
 ```
+
 ## Invite a Team Member to Project
+
 ```
 EMAIL=teammembersemail
 
@@ -582,7 +587,6 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="user:$USER_EMAIL" \
   --role="roles/owner"
 ```
-
 
 ## Terraform GKE Cluster and Helm Template Attempt 1
 
@@ -727,6 +731,7 @@ The above script does several things.
 * Insecure usage of source_ranges and oauth_scopes variable, not required, some of the permission concerns were difficult to address without better knowledge of google cloud.
 
 #Tasks I could use some help/tips/advice on
+```
 [root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl exec -it pg-client -n postgresql -- psql -U postgres -d postgres -a -q -f /tmp/scripts/create-user.sql
 psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such file or directory
         Is the server running locally and accepting connections on that socket?
@@ -789,16 +794,18 @@ So, I actually think it might be possible the ImagePullBackOff error could be ca
 
 I will have to re-deploy the cluster step by step again, and troubleshoot whether this goes wrong before or after HA and HELM cofiguration.
 
-Confirm that GKE pulling non existent image us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector, ErrImagePull. Unsure what to do because template changes or IAM permissions shouldnt cause this. If it was the repo read permissions for the service account the other 3 contaiers wouldnt have pulled their images from the same path (gke-release/gke-release). 
+Confirm that GKE pulling non existent image us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector, ErrImagePull. Unsure what to do because template changes or IAM permissions shouldnt cause this. If it was the repo read permissions for the service account the other 3 contaiers wouldnt have pulled their images from the same path (gke-release/gke-release).
 
 It seems like my limits have been reduced the error is something to do with "  Normal   NotTriggerScaleUp  75s   cluster-autoscaler                     pod didn't trigger scale-up: 5 max cluster cpu, memory limit reached". I have looked in Google Quota Limits carefully for all mentions of cluster and 5 max cluster cpu, but I am confused what quota limit it is refering to. One source of frustration is there appears to be no way to find what quota limits have been recently hit, denying builds, so that is very unhelpful and difficult to use, because one does not have a way of parsing the logs to identify specifically what the var is. As a cloud provider I would be ashamed if I was not able to provide the limit var context for which the soft/hard limit was associated.
 
 ## Checking closely the Bitnami and Helm Image Automation
 
 Here we are inspecting the output of helm
+
 ```
 helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" | grep debian
 ```
+
 Output looks like revealing the versions:
 ```
           image: us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/pgpool:4.6.0-debian-12-r2
@@ -860,7 +867,7 @@ kube-dns-74fc497549-bdsmc   3/4     ErrImagePull       0          63s
 kube-dns-94776b584-2ntq6    3/4     ImagePullBackOff   0          69m
 ```
 
-I really cannot understand why this is happening or what feature about my build could possibly affect this. I am not too familiar with Google Cloud product though, perhaps other things can cause DNS failure like this. Such as Quota. I see no way in GC to ascertain easily the most recently quota's exceeded, or, quotas that werent exceeded, because the slot_limit threshold wasn't triggered because it would not fit within the quota. So this means the quota limit could be really small, and because the slot wont fit, and its not in use, ,can't trace it down easily in google quota. I suspect these sort of issues are easier to resolve when one has a lot more familiarity with the build process. But, this really is a shame, because the automation for the most part completely works. I will be honest, after nearly completing all the objectives, these problems were serious grief, as I would have liked to spend more time exposing it with a LB, and safer security groups and spent more time on autopilot :(. 
+I really cannot understand why this is happening or what feature about my build could possibly affect this. I am not too familiar with Google Cloud product though, perhaps other things can cause DNS failure like this. Such as Quota. I see no way in GC to ascertain easily the most recently quota's exceeded, or, quotas that werent exceeded, because the slot_limit threshold wasn't triggered because it would not fit within the quota. So this means the quota limit could be really small, and because the slot wont fit, and its not in use, ,can't trace it down easily in google quota. I suspect these sort of issues are easier to resolve when one has a lot more familiarity with the build process. But, this really is a shame, because the automation for the most part completely works. I will be honest, after nearly completing all the objectives, these problems were serious grief, as I would have liked to spend more time exposing it with a LB, and safer security groups and spent more time on autopilot :(.
 
 Although it may not be proper, I wonder if deleting them and rerolling the deployment might help.
 
@@ -1079,3 +1086,4 @@ coredns kube-system     1               2025-03-30 15:50:53.857713588 +0100 BST 
 ```
 
 After much ado, discovered this is caused by PDR Quota on my account. Which has been a roadblock as to achieving what i desired which was upgrade procedure, disaster recovery, and migration to db2.
+
