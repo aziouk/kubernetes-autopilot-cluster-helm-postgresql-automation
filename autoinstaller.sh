@@ -15,10 +15,17 @@ echo "Sourcing environment variabbles for project_id..."
 cd gke-stateful-postgres
 echo "Starting terraform initailization..."
 terraform -chdir=terraform/gke-standard init -var project_id=predictx-postgrescluster
-echo "Starting teraform plan..."
-terraform -chdir=terraform/gke-standard plan -var project_id=predictx-postgrescluster
+#not really needed for automation or regular use, maybe a flag for the autoinstaller like --type [plan/apply] 
+#echo "Starting teraform plan..."
+#terraform -chdir=terraform/gke-standard plan -var project_id=predictx-postgrescluster
+
 echo "Starting Terraform apply..."
+#comment this line when doing unsupervised installations
 terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster
+#uncoment this line to auto-approve template (WARNING: DANGER) for unsupervised installations
+terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster --auto-approve
+
+#
 
 echo "Initializing Helm Deploy Script"
 cd ../
