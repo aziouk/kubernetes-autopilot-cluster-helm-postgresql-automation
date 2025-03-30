@@ -109,7 +109,7 @@ For details refer to the Google Cloud reference [here](https://cloud.google.com/
 If google unit tested their referenced templates against their own cloud docs the trouble could be probably avoided for many. Watch out for automation variables becoming empty lists, due to google changing options exposed in their api, breaking their unmaintained templates.
 
 ## Manual Installation Details
-Setup your environment using 
+cd to gke-stateful-postgres
 ```git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
 cd kubernetes-autopilot-cluster-helm-postgresql-automation/gke-stateful-postgres
 ```
@@ -131,6 +131,7 @@ gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<
 ## Install GKE Regional (or Zonal) Cluster with Autopilot (flakey)
 By using autopilot it is possible to build a multi region cluster with a redundant backup and nodes in seperate regions, as well as receive additional data for logging and analytics.
 ```
+#cd gke-stateful-postgres
 terraform -chdir=terraform/gke-autopilot init -var project_id=predictx-postgrescluster
 terraform -chdir=terraform/gke-autopilot plan -var project_id=predictx-postgrescluster
 terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgrescluster
