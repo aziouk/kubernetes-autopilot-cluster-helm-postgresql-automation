@@ -960,3 +960,51 @@ kube-dns-85ddb76787-lmfsh   3/4     ImagePullBackOff   0          67s
 ```
 
 It is just a really weird error, and I spent several hours trying to look for the cause, despite everything being right and previously working multiple times, it is as if DNS suddenly stopped working. Perhaps IAM or permissions is causing misleading error. Also, why does this only appear to impact db1? Is it the use of the service account? I suspect so actually. I will try rebuilding without the service account to rule this out;
+
+
+```[root@localhost postgresql-bootstrap]# kubectl get pods -n kube-system
+NAME                                                             READY   STATUS         RESTARTS      AGE
+calico-node-k5bmt                                                1/1     Running        0             77m
+calico-node-mdjnj                                                1/1     Running        0             78m
+calico-node-vertical-autoscaler-6d4c965dc7-k5f2z                 1/1     Running        0             80m
+calico-node-vj8hn                                                1/1     Running        0             77m
+calico-typha-7dfc8f8b49-8gd57                                    0/1     Pending        0             78m
+calico-typha-7dfc8f8b49-dmvhl                                    1/1     Running        0             78m
+calico-typha-horizontal-autoscaler-856df86957-j6vls              1/1     Running        0             80m
+calico-typha-vertical-autoscaler-bccbb6ffb-qlmr8                 1/1     Running        0             80m
+event-exporter-gke-746c49d5b8-n9zcj                              2/2     Running        0             4m35s
+fluentbit-gke-cmxm6                                              3/3     Running        0             79m
+fluentbit-gke-zbpfl                                              3/3     Running        0             79m
+fluentbit-gke-zvnd8                                              3/3     Running        0             79m
+gke-metadata-server-7mlnm                                        1/1     Running        0             79m
+gke-metadata-server-m9qnx                                        1/1     Running        0             79m
+gke-metadata-server-pkw4f                                        1/1     Running        0             79m
+ip-masq-agent-jhdz6                                              1/1     Running        0             79m
+ip-masq-agent-khcdv                                              1/1     Running        0             79m
+ip-masq-agent-nmfh9                                              1/1     Running        0             79m
+konnectivity-agent-7d6f885699-fc76w                              2/2     Running        0             79m
+konnectivity-agent-7d6f885699-mnk2h                              2/2     Running        0             80m
+konnectivity-agent-7d6f885699-rfkvc                              2/2     Running        0             79m
+konnectivity-agent-autoscaler-6c7895ffbf-rcrvm                   1/1     Running        0             80m
+kube-dns-85ddb76787-6nnmr                                        3/4     ErrImagePull   0             3m50s
+kube-dns-85ddb76787-lmfsh                                        3/4     ErrImagePull   0             3m50s
+kube-dns-autoscaler-56f4c4d44-klqc6                              1/1     Running        0             80m
+kube-proxy-gke-cluster-db1-nap-e2-highcpu-2-170j-9f5c5937-mp74   1/1     Running        0             79m
+kube-proxy-gke-cluster-db1-pool-db-a1c8486e-z3l1                 1/1     Running        0             79m
+kube-proxy-gke-cluster-db1-pool-sys-960c1684-b3ct                1/1     Running        0             79m
+l7-default-backend-5bbfcf9b-gg9hh                                1/1     Running        0             80m
+metrics-server-v1.32.0-84dd868749-9hrf2                          1/1     Running        0             79m
+netd-csqdb                                                       3/3     Running        0             79m
+netd-smc2c                                                       3/3     Running        0             79m
+netd-smgjs                                                       3/3     Running        0             79m
+pdcsi-node-4dbbp                                                 2/2     Running        1 (79m ago)   79m
+pdcsi-node-779fc                                                 2/2     Running        1 (79m ago)   79m
+pdcsi-node-x4h85                                                 2/2     Running        0             79m
+[root@localhost postgresql-bootstrap]#
+```
+
+I really think that, it should not be this hard to trouleshoot a dns issue, but I suspect the provision of the DNS is being caused by a variable conflict with the sizeof cluster, or quota variables, ,and I just dont have familiarity with google cloud enough to fix it quickly. It is most likely the fix for this error will take several minutes only I am just not sure what it is. Having had to think about other things I am also not used to working with it has made it challenging.
+```
+[root@localhost postgresql-bootstrap]#   kubectl delete deployment kube-dns -n kube-system
+deployment.apps "kube-dns" deleted
+```
