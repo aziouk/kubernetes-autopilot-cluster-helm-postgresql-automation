@@ -805,4 +805,4 @@ command terminated with exit code 2
 ```
 I will come back to this hopefully and fix it.
 
-
+I fixed it. I wrote a new master-client for the 0th node. Theoretically client-connect pgclient script can be adapted to switch to any pod and upload the /tmp/scripts for workload/population on postgresql etc.
