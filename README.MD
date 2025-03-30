@@ -10,7 +10,28 @@ Future versions of this repository will implement only kubernetes-engine-samples
 This resource consists of two components 1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** and 2. **Helm charts** Autoinstaller for bootstrapping Terraform Built GKE Cluster in the same namespace.  
 
 ## ⚡ Quick Start
-Before using the Quick Start please view the prequisites just below, as they are needed for the scripts to succeed.
+Before using the Quick Start installers please view the prequisites and GSM Setup needed for the automation components to run securely. It is important to understand that automation expects <mark> Google Secrets Manager must be first initialized</mark> and without that being done installs of helm postgresql chart on the cluster will fail. 
+
+# Initaializing GSM for First time
+<p align="left">
+  <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer.
+Replace px-user-password and px-user with credentials. This must be ran before the autoinstaller. (todo: move to top of git readme)
+</p>
+
+```
+gcloud secrets create DB_PASSWORD --replication-policy="automatic"
+gcloud secrets create DB_USER --replication-policy="automatic"
+gcloud secrets create DB_NAME --replication-policy="automatic"
+echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
+echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
+echo -n "predictx" | gcloud secrets version DB_NAME --data-file=-
+
+# Recommend to sanitize the plaintext password entry from BASH History something like
+history -d $(history 4 | awk '{print $1}') && history -w
+
+```
+
+
 # Install Method 1
 make sure you run it in a path you wont to clone the repo to;
 ```
@@ -141,25 +162,6 @@ You will need to set the DB_USER and DB_PASSWORD once, which is then used by hel
 ```
 gcloud secrets versions access latest --secret=DB_USER
 gcloud secrets versions access latest --secret=DB_PASSWORD
-```
-
-# Initaializing GSM for First time
-<p align="left">
-  <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer. 
-Replace px-user-password and px-user with credentials. This must be ran before the autoinstaller. (todo: move to top of git readme) 
-</p>
-
-```
-gcloud secrets create DB_PASSWORD --replication-policy="automatic"
-gcloud secrets create DB_USER --replication-policy="automatic"
-gcloud secrets create DB_NAME --replication-policy="automatic"
-echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
-echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
-echo -n "predictx" | gcloud secrets version DB_NAME --data-file=-
-
-# Recommend to sanitize the plaintext password entry from BASH History something like
-history -d $(history 4 | awk '{print $1}') && history -w
-
 ```
 
 # Running Helm Automation
