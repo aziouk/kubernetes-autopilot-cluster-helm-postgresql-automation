@@ -587,6 +587,30 @@ Unfortunately because my account has several quota limits with the number of tim
 
 It seems that the way that replicas work in zonal regions, building 3 replica instances in 3 regions builds 9 nodes, so I have reduced instances to 1, and max instances to 2. It will scale but now use <mark> much less resources </mark>.
 
+## Adding Service Accounts
+# Creating a Service Account 
+```
+gcloud iam service-accounts create my-service-account \
+  --description="Service account for GKE Cluster/Helm Autoinstaller with full access" \
+  --display-name="GKE Cluster/Helm Autobuilder Service Account"
+```
+
+# Creating owner permissions
+```
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:my-service-account@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/owner"
+```
+# Invite a Team Member to Project
+```
+EMAIL=teammembersemail
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="user:$USER_EMAIL" \
+  --role="roles/owner"
+```
+
+
 ## Terraform GKE Cluster and Helm Template Attempt 1
 
 I also created a custom template for Terraform and was able to build and communicate with the cluster. Sometimes though when it was run, because of the delay in cluster state coming available terraform can quit out, probably a delay can be added to stop that happening, because, it seems to affect the password generation run time and end up getting locked out of the postgresql database, as the password is needed to rerun automation for upgrades etc. This below template is only rough but it should work, and have spent a few hours testing, and after getting Google to increase quota on max cpu to 64, Networks to 20, and Disk quotas to 1500GB, the previous build errors are behind us.
@@ -776,4 +800,5 @@ psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such
 command terminated with exit code 2
 ```
 I will come back to this hopefully and fix it.
+
 
