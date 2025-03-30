@@ -1088,5 +1088,74 @@ NAME    NAMESPACE       REVISION        UPDATED                                 
 coredns kube-system     1               2025-03-30 15:50:53.857713588 +0100 BST deployed        coredns-1.39.2  1.12.0
 ```
 
-After much ado, discovered this is caused by PDR Quota on my account. Which has been a roadblock as to achieving what i desired which was upgrade procedure, disaster recovery, and migration to db2.
+After much ado, discovered this is caused by PDR Quota on my account. Which has been a roadblock as to achieving what i desired which was upgrade procedure, disaster recovery, and migration to db2. 
+
+Also something is wrong with the nameservers. I think it would be faster at this point to just rebuild the project each time to prevent leftovers from happening. It was worth the trouble for the experience gained though.
+
+# Final Remarks DNS Failure causes Build to halt
+
+Unknown reason for the DNS Failure, likely to do with my attempt to delete and rebuild it when it stopped working though. Also some images are not being pulled for GKE. It looks like permissions, but, this worked fine before.
+#
+#
+```
+[root@localhost gke-stateful-postgres]# kubectl get all -n $NAMESPACE
+NAME                                                        READY   STATUS             RESTARTS      AGE
+pod/pg-client                                               1/1     Running            0             133m
+pod/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4-g9kbc   1/1     Running            0             89m
+pod/postgresql-postgresql-ha-pgpool-8479dbf9d-b5f92         0/1     Running            0             89m
+pod/postgresql-postgresql-ha-postgresql-0                   0/2     Pending            0             89m
+pod/postgresql-postgresql-ha-postgresql-1                   1/2     CrashLoopBackOff   6 (96s ago)   89m
+pod/postgresql-postgresql-ha-postgresql-2                   1/2     Running            6 (76s ago)   89m
+pod/prepare-three-zone-ha-567487b7c-4qw28                   1/1     Running            0             92m
+
+NAME                                                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/postgresql-postgresql-ha-pgpool                ClusterIP   192.168.107.93   <none>        5432/TCP   89m
+service/postgresql-postgresql-ha-postgresql            ClusterIP   192.168.123.49   <none>        5432/TCP   89m
+service/postgresql-postgresql-ha-postgresql-headless   ClusterIP   None             <none>        5432/TCP   89m
+service/postgresql-postgresql-ha-postgresql-metrics    ClusterIP   192.168.90.225   <none>        9187/TCP   89m
+
+NAME                                                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/postgresql-postgresql-bootstrap-pgpool   1/1     1            1           89m
+deployment.apps/postgresql-postgresql-ha-pgpool          0/1     1            0           89m
+deployment.apps/prepare-three-zone-ha                    1/1     1            1           92m
+
+NAME                                                              DESIRED   CURRENT   READY   AGE
+replicaset.apps/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4   1         1         1       89m
+replicaset.apps/postgresql-postgresql-ha-pgpool-8479dbf9d         1         1         0       89m
+replicaset.apps/prepare-three-zone-ha-567487b7c                   1         1         1       92m
+
+NAME                                                   READY   AGE
+statefulset.apps/postgresql-postgresql-ha-postgresql   0/3     89m
+[root@localhost gke-stateful-postgres]# helm install coredns coredns/coredns --namespace kube-system
+NAME: coredns
+LAST DEPLOYED: Sun Mar 30 19:46:46 2025
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+CoreDNS is now running in the cluster as a cluster-service.
+
+It can be tested with the following:
+
+1. Launch a Pod with DNS tools:
+
+kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+
+2. Query the DNS server:
+
+/ # host kubernetes
+[root@localhost gke-stateful-postgres]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+
+If you don't see a command prompt, try pressing enter.
+
+dnstools# host kubernetes
+;; connection timed out; no servers could be reached
+dnstools# cat /etc/resolv.conf
+search default.svc.cluster.local svc.cluster.local cluster.local us-central1-b.c.predictx-postgrescluster.internal c.predictx-postgrescluster.internal google.internal
+nameserver 192.168.64.10
+options ndots:5
+dnstools#
+```
+
 
