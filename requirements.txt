@@ -1,0 +1,105 @@
+# Prequirements Summary
+
+# Ensure environment project_id is set by sourcing export and namespace use by kubectl
+. setenv.sh
+
+# Tools
+brew install terraform
+brew install --cask google-cloud-sdk
+gcloud components install kubectl
+brew install helm
+brew install jq
+gcloud components install gsutil
+yum install docker
+
+# Ensure Minimum API's are Enabled
+gcloud services enable \
+  compute.googleapis.com \
+  container.googleapis.com \
+  iam.googleapis.com \
+  secretmanager.googleapis.com  # If using Google Secret Manager
+  --project $PROJECT_ID
+
+# Exhaustive List of API's used
+
+# gcloud services list --enabled
+#NAME                                TITLE
+#analyticshub.googleapis.com         Analytics Hub API
+#artifactregistry.googleapis.com     Artifact Registry API
+#autoscaling.googleapis.com          Cloud Autoscaling API
+#bigquery.googleapis.com             BigQuery API
+#bigqueryconnection.googleapis.com   BigQuery Connection API
+#bigquerydatapolicy.googleapis.com   BigQuery Data Policy API
+#bigquerymigration.googleapis.com    BigQuery Migration API
+#bigqueryreservation.googleapis.com  BigQuery Reservation API
+#bigquerystorage.googleapis.com      BigQuery Storage API
+#cloudaicompanion.googleapis.com     Gemini for Google Cloud API
+#cloudapis.googleapis.com            Google Cloud APIs
+#cloudasset.googleapis.com           Cloud Asset API
+#cloudtrace.googleapis.com           Cloud Trace API
+#compute.googleapis.com              Compute Engine API
+#container.googleapis.com            Kubernetes Engine API
+#containerfilesystem.googleapis.com  Container File System API
+#containerregistry.googleapis.com    Container Registry API
+#dataform.googleapis.com             Dataform API
+#dataplex.googleapis.com             Cloud Dataplex API
+#datastore.googleapis.com            Cloud Datastore API
+#dns.googleapis.com                  Cloud DNS API
+#gkebackup.googleapis.com            Backup for GKE API
+#iam.googleapis.com                  Identity and Access Management (IAM) API
+#iamcredentials.googleapis.com       IAM Service Account Credentials API
+#logging.googleapis.com              Cloud Logging API
+#monitoring.googleapis.com           Cloud Monitoring API
+#networkconnectivity.googleapis.com  Network Connectivity API
+#oslogin.googleapis.com              Cloud OS Login API
+#pubsub.googleapis.com               Cloud Pub/Sub API
+#recommender.googleapis.com          Recommender API
+#secretmanager.googleapis.com        Secret Manager API
+#servicemanagement.googleapis.com    Service Management API
+#serviceusage.googleapis.com         Service Usage API
+#sql-component.googleapis.com        Cloud SQL
+#storage-api.googleapis.com          Google Cloud Storage JSON API
+#storage-component.googleapis.com    Cloud Storage
+#storage.googleapis.com              Cloud Storage API
+
+# For convenience this is provided to easily install all the googleapis used in the project, for safety it is better to use project_ID
+
+gcloud services enable \
+  analyticshub.googleapis.com \
+  artifactregistry.googleapis.com \
+  autoscaling.googleapis.com \
+  bigquery.googleapis.com \
+  bigqueryconnection.googleapis.com \
+  bigquerydatapolicy.googleapis.com \
+  bigquerymigration.googleapis.com \
+  bigqueryreservation.googleapis.com \
+  bigquerystorage.googleapis.com \
+  cloudaicompanion.googleapis.com \
+  cloudapis.googleapis.com \
+  cloudasset.googleapis.com \
+  cloudtrace.googleapis.com \
+  compute.googleapis.com \
+  container.googleapis.com \
+  containerfilesystem.googleapis.com \
+  containerregistry.googleapis.com \
+  dataform.googleapis.com \
+  dataplex.googleapis.com \
+  datastore.googleapis.com \
+  dns.googleapis.com \
+  gkebackup.googleapis.com \
+  iam.googleapis.com \
+  iamcredentials.googleapis.com \
+  logging.googleapis.com \
+  monitoring.googleapis.com \
+  networkconnectivity.googleapis.com \
+  oslogin.googleapis.com \
+  pubsub.googleapis.com \
+  recommender.googleapis.com \
+  secretmanager.googleapis.com \
+  servicemanagement.googleapis.com \
+  serviceusage.googleapis.com \
+  sql-component.googleapis.com \
+  storage-api.googleapis.com \
+  storage-component.googleapis.com \
+  storage.googleapis.com \
+  --project YOUR_PROJECT_ID
