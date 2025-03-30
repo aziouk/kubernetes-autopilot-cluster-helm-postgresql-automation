@@ -856,4 +856,7 @@ I am greeted with extremely unceremonious message, causing great disapointment a
 
 So, I actually think it might be possible the ImagePullBackOff error could be cause by low memory, which means increasing quota or decreasing the number of nodes should fix it.
 
+I will have to re-deploy the cluster step by step again, and troubleshoot whether this goes wrong before or after HA and HELM cofiguration.
+
+Confirm that GKE pulling non existent image us-central1-artifactregistry.gcr.io/gke-release/gke-release/gke-metrics-collector, ErrImagePull. Unsure what to do because template changes or IAM permissions shouldnt cause this. If it was the repo read permissions for the service account the other 3 contaiers wouldnt have pulled their images from the same path (gke-release/gke-release). 
 
