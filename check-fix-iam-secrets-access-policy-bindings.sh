@@ -5,7 +5,6 @@
 # The goal is to create an audit helper function for locking down GSM accounts, that could be potentially
 # implemented as a Terraform or Helm Chart later. Theoretically could form part of a security component
 # that would be designed to detect intrusions into the IAM scope perimeter.
-# Author: A. Bull - with some help from the computer
 
 #!/bin/bash
 
