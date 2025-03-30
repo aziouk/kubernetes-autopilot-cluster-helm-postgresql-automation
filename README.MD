@@ -1008,3 +1008,87 @@ I really think that, it should not be this hard to trouleshoot a dns issue, but 
 [root@localhost postgresql-bootstrap]#   kubectl delete deployment kube-dns -n kube-system
 deployment.apps "kube-dns" deleted
 ```
+
+# Exploring DNS Failure of kube-system on GKE
+
+We will try and reinstall the kube-system so it can pull a working image of a version that will build.
+```
+[root@localhost postgresql-bootstrap]# helm repo add coredns https://charts.coredns.org
+Error: looks like "https://charts.coredns.org" is not a valid chart repository or cannot be reached: Get "https://charts.coredns.org/index.yaml": dial tcp: lookup charts.coredns.org on 192.168.1.254:53: no such host
+[root@localhost postgresql-bootstrap]# helm repo add coredns https://coredns.github.io/helm
+"coredns" has been added to your repositories
+```
+Then we update the repo;
+```
+[root@localhost postgresql-bootstrap]# helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "coredns" chart repository
+...Successfully got an update from the "stable" chart repository
+Update Complete. ⎈Happy Helming!⎈
+```
+Then we reintall kube-dns system using latest coredns
+[root@localhost postgresql-bootstrap]# helm install coredns coredns/coredns --namespace kube-system
+Error: INSTALLATION FAILED: cannot re-use a name that is still in use
+[root@localhost postgresql-bootstrap]# helm uninstall coredns -n kube-system
+release "coredns" uninstalled
+[root@localhost postgresql-bootstrap]# helm install coredns coredns/coredns --namespace kube-system
+NAME: coredns
+LAST DEPLOYED: Sun Mar 30 15:31:34 2025
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+```
+CoreDNS is now running in the cluster as a cluster-service.
+
+It can be tested with the following:
+
+1. Launch a Pod with DNS tools:
+```
+kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+```
+2. Query the DNS server:
+```
+/ # host kubernetes
+[root@localhost postgresql-bootstrap]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+Error from server (AlreadyExists): pods "dnstools" already exists
+```
+Delete existing pods failing
+[root@localhost postgresql-bootstrap]# kubectl delete pod dnstools
+pod "dnstools" deleted
+
+#Attempt to build from latest image a pod and test hostname resolution
+[root@localhost postgresql-bootstrap]# kubectl run -it --rm --restart=Never --image=infoblox/dnstools:latest dnstools
+If you don't see a command prompt, try pressing enter.
+dnstools#  host kubernetes
+
+
+;; connection timed out; no servers could be reached
+
+```
+Thinks seem borked with it, and DNS is the only thing holding back Development. What a pain.
+The issue is definitely kaliko i think. You can try running the following to get events from the system
+
+```
+[root@localhost postgresql-bootstrap]# kubectl get events -n kube-system
+```
+
+# Pertient error messages:
+
+```
+28m         Warning   FailedCreatePodSandBox   pod/calico-node-vertical-autoscaler-6d4c965dc7-npmt6                 Failed to create pod sandbox: rpc error: code = Unknown desc = failed to setup network for sandbox "1724729e3ee714c0e788a992ecb5958a4f2e3534ddad5b0757d261d9a2b76fe1": plugin type="calico" failed (add): error getting ClusterInformation: resource does not exist: ClusterInformation(default) with error: clusterinformations.crd.projectcalico.org "default" not found
+```
+
+```6m59s       Warning   FailedScheduling         pod/coredns-coredns-64fc886fd4-b6zdm                                 0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+119s        Normal    NotTriggerScaleUp        pod/coredns-coredns-64fc886fd4-b6zdm                                 pod didn't trigger scale-up: 9 max cluster cpu, memory limit reached
+66s         Warning   FailedScheduling         pod/coredns-coredns-64fc886fd4-b6zdm                                 0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+7m          Normal    SuccessfulCreate         replicaset/coredns-coredns-64fc886fd4                                Created pod: coredns-coredns-64fc886fd4-b6zdm
+7m          Normal    ScalingReplicaSet        deployment/coredns-coredns                                           Scaled up replica set coredns-coredns-64fc886fd4 from 0 to 1
+12m         Warning   FailedScheduling         pod/event-exporter-gke-746c49d5b8-4mtbz                              0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+12m         Normal    NotTriggerScaleUp        pod/event-exporter-gke-746c49d5b8-4mtbz                              pod didn't trigger scale-up: 9 max cluster cpu, memory limit reached
+11m         Warning   FailedScheduling         pod/event-exporter-gke-746c49d5b8-4mtbz                              0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+```
+
+It looks like the dns is causing taints in the whole build process because some memory quota limit is reached. Unfortunately the error message is so unhelpful it is dificult to conclude what 9 max cluster cpu refers to. I've checked in quotas and everything looks fine. so weird.
+

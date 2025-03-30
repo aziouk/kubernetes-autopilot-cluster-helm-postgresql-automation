@@ -71,10 +71,10 @@ module "gke-db1" {
       name            = "pool-sys"
       autoscaling     = true
       min_count       = 1
-      max_count       = 2
+      max_count       = 2 
       max_surge       = 1
       max_unavailable = 0
-      machine_type    = "e2-small"
+      machine_type    = "e2-standard-2"
       node_locations  = "us-central1-a,us-central1-b,us-central1-c"
       auto_repair     = true
     },
@@ -83,7 +83,7 @@ module "gke-db1" {
       autoscaling     = true
       max_surge       = 1
       max_unavailable = 0
-      machine_type    = "e2-small"
+      machine_type    = "e2-standard-2"
       node_locations  = "us-central1-a,us-central1-b,us-central1-c"
       auto_repair     = true
     },
@@ -154,7 +154,7 @@ module "gke-db2" {
       max_count       = 2
       max_surge       = 1
       max_unavailable = 0
-      machine_type    = "e2-small"
+      machine_type    = "e2-standard-2"
       node_locations  = "us-west1-a"
       auto_repair     = true
     },
@@ -163,7 +163,7 @@ module "gke-db2" {
       autoscaling     = true
       max_surge       = 1
       max_unavailable = 0
-      machine_type    = "e2-small"
+      machine_type    = "e2-standard-2"
       node_locations  = "us-west1-a"
       auto_repair     = true
     },
