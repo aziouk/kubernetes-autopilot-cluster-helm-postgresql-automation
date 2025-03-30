@@ -1145,3 +1145,5 @@ dnstools# exit
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
 coredns kube-system     1               2025-03-30 15:50:53.857713588 +0100 BST deployed        coredns-1.39.2  1.12.0
 ```
+
+After much ado, discovered this is caused by PDR Quota on my account. Which has been a roadblock as to achieving what i desired which was upgrade procedure, disaster recovery, and migration to db2.
