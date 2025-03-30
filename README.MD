@@ -238,7 +238,7 @@ postgres=# SHOW hba_file;
 (1 row)
 
 ```
-# Confirming Database added by sql task script (now deprecated) 
+## Checking User Tables 
 
 ```
 [root@localhost scripts]# kubectl exec -it pg-client -n postgresql -- /bin/bash
@@ -254,7 +254,7 @@ postgres=# \du
 postgres=# exit
 ```
 
-# Check Database online
+## Check Database online/version
 ```
 kubectl exec -it pg-client -n postgresql -- /bin/bash -c "psql -h \$HOST_PGPOOL -U postgres -c 'SELECT version();' -a -q && echo 'PostgreSQL is running fine' || echo 'PostgreSQL is not running'"
 SELECT version();
@@ -268,7 +268,7 @@ PostgreSQL is running fine
 
 Make sure that your $NAMESPACE and $PROJECT_ID env variable is defined too.
 
-# Check User and Data is added
+# Check User and Data is added, alternative.
 ```
 kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
 psql -h \$HOST_PGPOOL -U postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='px-user';\" && \
@@ -277,6 +277,7 @@ echo 'px-user exists and has access to the predictx database' || \
 echo 'px-user does not exist or lacks access to the predictx database'"
 ```
 
+As time goes by these checks will be integrated into the terraform/helm automation components.
 
 # Resolved (will remove later)
 ```
@@ -289,41 +290,6 @@ command terminated with exit code 127
 Defaulted container "postgresql" out of: postgresql, metrics
 I have no name!@postgresql-postgresql-ha-postgresql-0:/$ psql -U postgres
 psql (16.6)
-Type "help" for help.
-
-postgres=# whoami
-postgres-# id
-postgres-# su - postgres
-postgres-# psql
-postgres-# ls -al /tmp/scripts
-postgres-# exit
-Use \q to quit.
-postgres-# CREATE DATABASE predictx;
-ERROR:  syntax error at or near "whoami"
-LINE 1: whoami
-        ^
-postgres=# CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
-ERROR:  role "px-user" already exists
-postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
-GRANT
-postgres=#
-postgres=# CREATE DATABASE predictx;
-ERROR:  database "predictx" already exists
-postgres=# CREATE USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
-ERROR:  role "px-user" already exists
-postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
-GRANT
-postgres=#
-postgres=# DROP DATABASE predictx;
-DROP DATABASE
-postgres=# CREATE DATABASE predictx;
-CREATE DATABASE
-postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
-GRANT
-postgres=# ALTER USER "px-user" WITH ENCRYPTED PASSWORD 'px-user';
-ALTER ROLE
-postgres=# GRANT ALL PRIVILEGES ON DATABASE predictx TO "px-user";
-GRANT
 postgres=# \du
                              List of roles
  Role name |                         Attributes
