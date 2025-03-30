@@ -109,9 +109,7 @@ terraform -chdir=terraform/gke-standard plan -var project_id=$PROJECT_ID
 terraform -chdir==terraform/gke-standard apply -var project_id=$PROJECT_ID
 ```
 ## Helm Installer for PostgreSQL
-The Helm installer provided (helm_deploy_postgres.sh) will automate the docker image pull and installation to the GKE Cluster using the setenv project variables, and is integrated with the google cloud tool. The additional requirement is a local docker installation is required, even though your pushing to remote, you need it on the controlling machine to communicate with the instances in gcloud. I had some issues with imagepulls but it seems its because I am over the quota of my free account after looking into it.
-
-However a summary of the tasks it performs are included below for your reference. 
+The Helm installer provided by helm_deploy_postgres.sh will automate the docker image pull and installation to the GKE Cluster using the setenv project variables and project namespace in kubectl. If you have issues with image installations check your docker status in systemctl status docker. Even though your pushing to remote, you still need a docker socket locally on the controlling machine to communicate with the remote instances in gcloud forming the cluster. 
 
 <p align="left">
   <strong>⚠️ Warning:</strong> Google Cloud Documentation Examples has unmaintained/stale templates, instructions for helm dependencies scripts can not be trusted as correct.
@@ -119,7 +117,7 @@ However a summary of the tasks it performs are included below for your reference
 
 You need to check carefully the output before proceeding with helm istallation
 ```
-[root@localhost postgresql-bootstrap]# helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
+helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 ```
 The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieving the correct version specified by helm template matched chart versions in google docs. The following are used instead with this version of kubernetes builds:
 
