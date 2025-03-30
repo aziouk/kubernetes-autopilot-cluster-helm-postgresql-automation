@@ -1027,6 +1027,8 @@ Hang tight while we grab the latest from your chart repositories...
 Update Complete. ⎈Happy Helming!⎈
 ```
 Then we reintall kube-dns system using latest coredns
+
+```
 [root@localhost postgresql-bootstrap]# helm install coredns coredns/coredns --namespace kube-system
 Error: INSTALLATION FAILED: cannot re-use a name that is still in use
 [root@localhost postgresql-bootstrap]# helm uninstall coredns -n kube-system
