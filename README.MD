@@ -698,7 +698,7 @@ resource "google_compute_firewall" "allow_nodeport" {
 
   allow {
     protocol = "tcp"
-    ports    = ["30000-32767"]  # Allow NodePort range for external access
+    ports    = ["30000-32767","5432"]  # Allow NodePort range for external access
   }
 
   source_ranges = ["0.0.0.0/0"]  # Allow connections from any IP address
