@@ -67,11 +67,14 @@ roles/viewer
 ```
 
 ## Trouble with Googles Example Templates Failing (Updated 28/03/2025)
-It appears there has been several changes and google has not updated their documentation. :(
+<p align="left">
+  <strong>⚠️ Warning:</strong> Be forewarned that Googles Terraform and Helm templates documentation for Google Cloud are stale and unmaintained, causing most builds of their examples to imagepullerr or taint.
+</p>
 
-Carefully noting the Google Cloud reference [here](https://cloud.google.com/kubernetes-engine/docs/tutorials/stateful-workloads/postgresql#autopilot) contains significant inaccuracies and typos, for example <mark>role/artifactregistry.Admin</mark> should be prefixed by <mark>roles/</mark> not role/ and secondly is actually named <mark>artifactregistry.repoAdmin</mark> not artifactregistry.repo</mark> as of 28/03/2025. It seems that the Google Clouds SDK own documentation repository is floating unworkable example templates which are not maintained by anyone, or it is just not a big priority for them.
 
-If google unit tested their referenced templates against their own cloud docs the trouble could be probably avoided for many.
+For details refer to the Google Cloud reference [here](https://cloud.google.com/kubernetes-engine/docs/tutorials/stateful-workloads/postgresql#autopilot), which contains significant inaccuracies, typos, and unmaintained deprecations for example <mark>role/artifactregistry.Admin</mark> should be prefixed by <mark>roles/</mark> not role/ and secondly is actually named <mark>artifactregistry.repoAdmin</mark> not artifactregistry.repo</mark> as of 28/03/2025. It seems that the Google Clouds SDK own documentation repository is floating unworkable example templates which are not maintained by anyone, or it is just not a big priority for them.
+
+If google unit tested their referenced templates against their own cloud docs the trouble could be probably avoided for many. Watch out for automation variables becoming empty lists, due to google changing options exposed in their api, breaking their unmaintained templates.
 
 # Manual Installation Details
 Setup your environment using 
