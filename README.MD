@@ -1214,3 +1214,28 @@ kube-dns-autoscaler-6c87cf5796-xws6j                             1/1     Running
 
 Increased the values of cluster temporarily to test helm builds and provisioning, the will slowly reduce.
 
+The same problem with backoff, appears related to cluster limits;
+```
+kubectl describe pod postgresql-postgresql-ha-postgresql-1
+Events:
+  Type     Reason                  Age                   From                                   Message
+  ----     ------                  ----                  ----                                   -------
+  Normal   Scheduled               5m18s                 gke.io/optimize-utilization-scheduler  Successfully assigned default/postgresql-postgresql-ha-postgresql-1 to gke-cluster-db1-pool-db-c163639c-dk1t
+  Normal   SuccessfulAttachVolume  5m14s                 attachdetach-controller                AttachVolume.Attach succeeded for volume "pvc-74653481-490f-4d53-9617-a3e2aa503bc6"
+  Normal   Pulled                  5m7s                  kubelet                                Container image "us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgres-exporter:0.17.1-debian-12-r2" already present on machine
+  Normal   Created                 5m7s                  kubelet                                Created container: metrics
+  Normal   Started                 5m7s                  kubelet                                Started container metrics
+  Warning  Unhealthy               4m53s                 kubelet                                Readiness probe failed: psql: error: connection to server at "127.0.0.1", port 5432 failed: FATAL:  the database system is starting up
+  Warning  Unhealthy               4m53s                 kubelet                                Readiness probe failed: psql: error: connection to server at "127.0.0.1", port 5432 failed: FATAL:  password authentication failed for user "postgres"
+  Normal   Pulled                  106s (x6 over 5m7s)   kubelet                                Container image "us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgresql-repmgr:16.6.0-debian-12-r3" already present on machine
+  Normal   Created                 106s (x6 over 5m7s)   kubelet                                Created container: postgresql
+  Normal   Started                 106s (x6 over 5m7s)   kubelet                                Started container postgresql
+  Warning  BackOff                 11s (x23 over 4m47s)  kubelet                                Back-off restarting failed container postgresql in pod postgresql-postgresql-ha-postgresql-1_default(56e370fd-eb9f-42e3-9cfb-47b5f3ec17a9)
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]#
+```
+
+#Current State of The Build and next steps needed
+Come to think of it, I think this issue started when I changed helm password automation, it seems likely, beyond kube-dns and gke repo permission issues, and other strangeness, that the issue is now with the non optional password not being set in the backend, causing issues with the sync and triggering a pod restart/replace. It is probably much simpler to get the automation in working order, we were stuck in the mud for a day without kube-dns.  I think the non optional password wasnt set and a variable was sent empty, that explains why the automation is failing. I increased the cluster size, and now there isnt as many backoff issues with the ha group, and I think that the quota,limit issues were shielding the problem with helm automation.
+
+todo fix helm password automation (last step of helm autoinstall).
+
