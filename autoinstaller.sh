@@ -14,7 +14,7 @@ echo "Sourcing environment variabbles for project_id..."
 
 cd gke-stateful-postgres
 echo "Starting terraform initailization..."
-terraform -chdir=terraform/gke-standard init -var project_id=predictx-postgrescluster
+#terraform -chdir=terraform/gke-standard init -var project_id=predictx-postgrescluster
 
 echo "Starting Terraform apply..."
 terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster
@@ -37,5 +37,8 @@ chmod +x helm_deploy_postgresql.sh
 
 #todo: add tertiary user add script/teraform
 #todo: add bastion vm creation and credentials dropper, for connecting easily to exposed nodeport/lbip/publicipv4 exposed cluster gw
+#todo: terraform -chdir=terraform/gke-standard destroy -var project_id=predictx-postgrescluster [can be an argument for this script] like arg1=uninstall
+#todo: resize cluster scripts
+#todo: migration scripts, monitoring install scripts etc
 
 
