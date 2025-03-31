@@ -9,6 +9,22 @@ Future versions of this repository will implement only kubernetes-engine-samples
 
 This resource consists of two components 1. Terraform Templates for **Google Kubernetes Engine (GKE) cluster** and 2. **Helm charts** Autoinstaller for bootstrapping Terraform Built GKE Cluster in the same namespace.
 
+## 📌 Prerequisites
+
+### ✅ Required Software
+Ensure you have the following installed:
+
+| Dependency         | Purpose                                          | Install Command |
+|-------------------|------------------------------------------------|----------------|
+| **Terraform** (≥ 1.0) | Infrastructure as Code (IaC) tool to provision GKE | `brew install terraform` (Mac) / [Download](https://developer.hashicorp.com/terraform/downloads) |
+| **Google Cloud SDK** | CLI tool to manage Google Cloud resources | `brew install --cask google-cloud-sdk` (Mac) / [Install Guide](https://cloud.google.com/sdk/docs/install) |
+| **kubectl** | CLI for managing Kubernetes clusters | `gcloud components install kubectl` |
+| **Helm (≥ v3)** | Package manager for Kubernetes (needed for PostgreSQL deployment) | `brew install helm` / [Install Guide](https://helm.sh/docs/intro/install/) |
+| **jq** | JSON parser (for debugging outputs) | `brew install jq` |
+| **gsutil** | CLI tool to manage Google Cloud Storage (if using GCS for secrets) | `gcloud components install gsutil` |
+| **docker** | Local version of docker required to be installed and running | `yum install docker` |
+
+
 # ⚡ Quick Start
 Before using the Quick Start installers please view the prequisites and ~~GSM Setup needed for the automation components to run securely~~ (in latest version it is automatic, once vars are set right). If you have initialized GSM and installed the pre-requirements you can proceed immediately to the [install section](https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/tree/master?tab=readme-ov-file#install-method-1). In future installers GSM for the role will be installed automatically via terraform the way the other roles are added by the gke-standard and gke-autopilot scripts at build time.
 
@@ -55,23 +71,6 @@ gcloud secrets versions access latest --secret=DB_USER
 gcloud secrets versions access latest --secret=DB_PASSWORD
 gcloud secrets versions access latest --secret=DB_NAME
 ```
-
-## 📌 Prerequisites
-
-### ✅ Required Software
-Ensure you have the following installed:
-
-| Dependency         | Purpose                                          | Install Command |
-|-------------------|------------------------------------------------|----------------|
-| **Terraform** (≥ 1.0) | Infrastructure as Code (IaC) tool to provision GKE | `brew install terraform` (Mac) / [Download](https://developer.hashicorp.com/terraform/downloads) |
-| **Google Cloud SDK** | CLI tool to manage Google Cloud resources | `brew install --cask google-cloud-sdk` (Mac) / [Install Guide](https://cloud.google.com/sdk/docs/install) |
-| **kubectl** | CLI for managing Kubernetes clusters | `gcloud components install kubectl` |
-| **Helm (≥ v3)** | Package manager for Kubernetes (needed for PostgreSQL deployment) | `brew install helm` / [Install Guide](https://helm.sh/docs/intro/install/) |
-| **jq** | JSON parser (for debugging outputs) | `brew install jq` |
-| **gsutil** | CLI tool to manage Google Cloud Storage (if using GCS for secrets) | `gcloud components install gsutil` |
-| **docker** | Local version of docker required to be installed and running | `yum install docker` |
-
----
 
 ### ✅ Enable Required Google Cloud APIs
 Run the following command to enable required APIs:
