@@ -1436,17 +1436,162 @@ kubectl logs <pod-name> -n postgresql
 ```
 ##Redeploy the script something like
 ```
+# may need to uninstall
+helm uninstall postgresql
+# install
 helm upgrade --install postgresql . \
   --set postgresql.password="$(gcloud secrets versions access latest --secret=DB_PASSWORD | tr -d '\n')" \
   --set postgresql.database="$(gcloud secrets versions access latest --secret=DB_NAME | tr -d '\n')" \
   -n postgresql
 ```
+
+# Running Automation with Helm Deploy Alone (without terraform)
+
+This is very useful as you wont have to keep running template. Also if you place regional db-clusters with one zone, you can add greater replication/redundancy later on.
+```
+chmod +x deploy_helm_postgres.sh
+./deploy_helm_postgressql.sh
+<snipped>
+==== HELM CHART ENDS HERE =====
+Release "postgresql" does not exist. Installing it now.
+W0331 07:40:37.126206 1423321 warnings.go:70] spec.template.spec.topologySpreadConstraints[0].labelSelector: a null labelSelector results in matching no pod
+NAME: postgresql
+LAST DEPLOYED: Mon Mar 31 07:40:31 2025
+NAMESPACE: postgresql
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+==== BEGIN BUILD CREDENTIALS INFO====
+auth.username:<someuser>
+auth.password:<somepassword>
+auth.database:<databasename>
+==== END BUILD CREDENTIALS INFO ====
+Giving helm some grace time before attempting to pull build from kubectl get...
+NAME                                                        READY   STATUS    RESTARTS   AGE
+pod/pg-client                                               1/1     Running   0          141m
+pod/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4-bh29j   1/1     Running   0          33s
+pod/postgresql-postgresql-ha-pgpool-8479dbf9d-rplr5         1/1     Running   0          33s
+pod/postgresql-postgresql-ha-postgresql-0                   2/2     Running   0          33s
+pod/postgresql-postgresql-ha-postgresql-1                   1/2     Running   0          33s
+pod/postgresql-postgresql-ha-postgresql-2                   1/2     Running   0          33s
+
+NAME                                                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/postgresql-postgresql-ha-pgpool                ClusterIP   192.168.67.157   <none>        5432/TCP   34s
+service/postgresql-postgresql-ha-postgresql            ClusterIP   192.168.72.104   <none>        5432/TCP   34s
+service/postgresql-postgresql-ha-postgresql-headless   ClusterIP   None             <none>        5432/TCP   34s
+service/postgresql-postgresql-ha-postgresql-metrics    ClusterIP   192.168.90.220   <none>        9187/TCP   34s
+
+NAME                                                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/postgresql-postgresql-bootstrap-pgpool   1/1     1            1           35s
+deployment.apps/postgresql-postgresql-ha-pgpool          1/1     1            1           35s
+
+NAME                                                              DESIRED   CURRENT   READY   AGE
+replicaset.apps/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4   1         1         1       35s
+replicaset.apps/postgresql-postgresql-ha-pgpool-8479dbf9d         1         1         1       35s
+
+NAME                                                   READY   AGE
+statefulset.apps/postgresql-postgresql-ha-postgresql   1/3     34s
+
+
 Then check the statefulset again 
 ```
 kubectl get statefulset -n postgresql
 ```
 
+#Final Checks
 Output should look like:
 ```
-.
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get statefulset -n postgresql
+NAME                                  READY   AGE
+postgresql-postgresql-ha-postgresql   3/3     3m39s
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pods -n postgresql
+NAME                                                    READY   STATUS    RESTARTS   AGE
+pg-client                                               1/1     Running   0          144m
+postgresql-postgresql-bootstrap-pgpool-d6dd4dd4-bh29j   1/1     Running   0          3m58s
+postgresql-postgresql-ha-pgpool-8479dbf9d-rplr5         1/1     Running   0          3m58s
+postgresql-postgresql-ha-postgresql-0                   2/2     Running   0          3m58s
+postgresql-postgresql-ha-postgresql-1                   2/2     Running   0          3m58s
+postgresql-postgresql-ha-postgresql-2                   2/2     Running   0          3m58s
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get all -n postgresql
+NAME                                                        READY   STATUS    RESTARTS   AGE
+pod/pg-client                                               1/1     Running   0          145m
+pod/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4-bh29j   1/1     Running   0          4m11s
+pod/postgresql-postgresql-ha-pgpool-8479dbf9d-rplr5         1/1     Running   0          4m11s
+pod/postgresql-postgresql-ha-postgresql-0                   2/2     Running   0          4m11s
+pod/postgresql-postgresql-ha-postgresql-1                   2/2     Running   0          4m11s
+pod/postgresql-postgresql-ha-postgresql-2                   2/2     Running   0          4m11s
+
+NAME                                                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/postgresql-postgresql-ha-pgpool                ClusterIP   192.168.67.157   <none>        5432/TCP   4m12s
+service/postgresql-postgresql-ha-postgresql            ClusterIP   192.168.72.104   <none>        5432/TCP   4m12s
+service/postgresql-postgresql-ha-postgresql-headless   ClusterIP   None             <none>        5432/TCP   4m12s
+service/postgresql-postgresql-ha-postgresql-metrics    ClusterIP   192.168.90.220   <none>        9187/TCP   4m12s
+
+NAME                                                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/postgresql-postgresql-bootstrap-pgpool   1/1     1            1           4m12s
+deployment.apps/postgresql-postgresql-ha-pgpool          1/1     1            1           4m12s
+
+NAME                                                              DESIRED   CURRENT   READY   AGE
+replicaset.apps/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4   1         1         1       4m13s
+replicaset.apps/postgresql-postgresql-ha-pgpool-8479dbf9d         1         1         1       4m13s
+
+NAME                                                   READY   AGE
+statefulset.apps/postgresql-postgresql-ha-postgresql   3/3     4m12s
+
 ```
+
+## Check all is alive and well with the pgclient launcher
+#
+# Configuring Tertiary Account
+The Helm script uses --secret=DB_PASSWORD and DB_NAME, DB_USER is unused by helm template.
+However, you may want to add a tertiary user. To do that add the var metadata to GSM.
+
+Lets demonstrate how that is achieved;
+
+#Create Secondary/Tertiary User Secrets
+replacing the tertiary_prefixes with the desired credentials.
+```
+gcloud secrets create TERTIARY_USER --data-file=<(echo -n "tertiary_user")
+gcloud secrets create TERTIARY_PASSWORD --data-file=<(echo -n "tertiary_password")
+gcloud secrets create TERTIARY_DATABASE --data-file=<(echo -n "tertiary_database")
+```
+Be sure to wipe your history afterwards.
+#SET GSM Postgress Admin PGUSER and TERTIARY USER
+~~PGUSER=$(gcloud secrets versions access latest --secret=DB_USER)~~ UNUSED BY HELM - chart only accepts password and dbname for admin account. That doesnt matter we can simulate it.
+```
+PGUSER="postgres"
+PGPASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
+PGDATABASE=$(gcloud secrets versions access latest --secret=DB_NAME)
+TERTIARY_USER=$(gcloud secrets versions access latest --secret=TERTIARY_USER)
+TERTIARY_PASSWORD=$(gcloud secrets versions access latest --secret=TERTIARY_PASSWORD)
+TERTIARY_DATABASE=$(gcloud secrets versions access latest --secret=TERTIARY_DATABASE)
+```
+
+
+# TEST Primary & Tertiary User working
+```export PGPASSWORD && \
+psql -h $HOST_PGPOOL -U $PGUSER -d $PGDATABASE -tAc "SELECT 1;" && \
+psql -h $HOST_PGPOOL -U $TERTIARY_USER -d $TERTIARY_DATABASE -tAc "SELECT 1;" && \
+echo 'Main postgres user and tertiary user have access to their respective databases.' || \
+echo 'Either the main postgres user or tertiary user does not have access to their respective database.'
+```
+
+##One-liner to Create the Tertiary User and Database:
+
+kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
+TERTIARY_USER=\$(gcloud secrets versions access latest --secret=TERTIARY_USER) && \
+TERTIARY_PASSWORD=\$(gcloud secrets versions access latest --secret=TERTIARY_PASSWORD) && \
+TERTIARY_DATABASE=\$(gcloud secrets versions access latest --secret=TERTIARY_DATABASE) && \
+psql -h \$HOST_PGPOOL -U postgres -c \"CREATE USER \$TERTIARY_USER WITH PASSWORD '\$TERTIARY_PASSWORD';\" && \
+psql -h \$HOST_PGPOOL -U postgres -c \"CREATE DATABASE \$TERTIARY_DATABASE;\" && \
+psql -h \$HOST_PGPOOL -U postgres -c \"GRANT ALL PRIVILEGES ON DATABASE \$TERTIARY_DATABASE TO \$TERTIARY_USER;\" && \
+echo 'Tertiary user, password, and database created successfully.'"
+
+##Retest Primary (and Tertiary User after adding it) both should report OK
+```export PGPASSWORD && \
+psql -h $HOST_PGPOOL -U $PGUSER -d $PGDATABASE -tAc "SELECT 1;" && \
+psql -h $HOST_PGPOOL -U $TERTIARY_USER -d $TERTIARY_DATABASE -tAc "SELECT 1;" && \
+echo 'Main postgres user and tertiary user have access to their respective databases.' || \
+echo 'Either the main postgres user or tertiary user does not have access to their respective database.'
+```
+s
