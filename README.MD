@@ -1312,4 +1312,141 @@ Pod: pg-client is healthy
 
 Unless kubedns fails again, and I find that you now have to generate yaml file to reload coredns services, and google removed 404'ing the yaml file mentioned in documentation.  That's all folks. It's a long fu, and needs shortening for real documentation.
 
-Last TODO: need to fix google terraform version to ~>5.00 so i can use the delete_protection = false flag. It's been a real pain having to destroy the cluster heads manually. Terraform removes all the nodes and rules, just, not the cluster. Apparently the delete protection flag was introduced in versions over 5.00. This needs addressing for terraform destroy to work as expected. 
+Last TODO: need to fix google terraform version to ~>5.00 so i can use the delete_protection = false flag. It's been a real pain having to destroy the cluster heads manually. Terraform removes all the nodes and rules, just, not the cluster. Apparently the delete protection flag was introduced in versions over 5.00. This needs addressing for terraform destroy to work as expected.
+
+# Fixing Helm Automation for complete autoinstaller task
+
+## Debugging Helm Chart
+```
+kubectl get secrets postgresql-db-secret -n postgresql -o yaml
+#verifying secret
+```
+If something is missing, Helm might not be using the Secret correctly—check values.yaml and templates/.
+
+## Current format used by postgresql Helm Chart
+```
+data:
+  password: <base64-encoded-value>
+  database: <base64-encoded-value>
+```
+Note: Helm encodes value into base64 received from GSM in plaintext. Using --set has some risks, without sanitation.
+
+## Check Pod Environment Vars
+```
+kubectl describe pod <postgresql-pod-name> -n postgresql
+#check helm templates
+
+grep -r "password" helm/templates/
+```
+
+#🚨 How This Could Break Your HA PostgreSQL Chart
+
+    ##Password Might Be Required
+
+1. Many PostgreSQL Helm charts (especially HA ones) require a password to properly initialize replication and clustering.
+    * If postgresql.password is empty, the cluster might fail to start or could create an unexpected default password that doesn’t match what other services expect.
+
+    ##2.Database Initialization Issues
+
+        If postgresql.database is empty, the chart might not create a database, causing connection failures for apps expecting it.
+
+    ##HA Components (PgPool, Replication) Might Fail
+
+        If HA features like PgPool-II or Patroni depend on these values being set, they could fail to configure correctly.
+
+## 🔍 How to Check if It's Causing Issues
+```
+kubectl describe statefulset postgresql -n postgresql
+```
+Look for error messages related to password authentication or missing database configurations.
+## Check pod logs for failures
+```
+kubectl logs -l app=postgresql -n postgresql
+```
+
+Common errors:
+
+    FATAL: password authentication failed
+
+    ERROR: database "xyz" does not exist
+
+    pgpool: failed to authenticate backend
+
+## Verify That Secrets Exist and Are Used
+```
+kubectl get secrets -n postgresql
+```
+Check if Helm actually set the secrets.
+
+# ✅ How to Fix This
+#
+## Option 1 - Direct Set (not super secure)
+```
+helm upgrade --install postgresql . \
+  --set postgresql.password="$(gcloud secrets versions access latest --secret=DB_PASSWORD | tr -d '\n')" \
+  --set postgresql.database="$(gcloud secrets versions access latest --secret=DB_NAME | tr -d '\n')" \
+  -n postgresql
+```
+## Option 2 - Kubernetes Password in gsm
+```
+kubectl create secret generic postgresql-db-secret \
+  --from-literal=password="$(gcloud secrets versions access latest --secret=DB_PASSWORD)" \
+  --from-literal=database="$(gcloud secrets versions access latest --secret=DB_NAME)" \
+  -n postgresql
+```
+
+Refrence the secret in helm like, noting the trim tr -d line so anything unusual wont break helm.
+```
+helm upgrade --install postgresql . \
+  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
+  --set postgresql.password="$(gcloud secrets versions access latest --secret=DB_PASSWORD | tr -d '\n')" \
+  --set postgresql.database="$(gcloud secrets versions access latest --secret=DB_NAME | tr -d '\n')" \
+  -n postgresql
+```
+## 🚀 Final Checks after Deployment
+#
+```
+kubectl get statefulset -n postgresql
+```
+## 🔍Step 1 Finding the Correct StatefulSet Name if statefulset missing
+
+```
+kubectl get all -n postgresql
+```
+Look for something like
+```
+NAME                                READY   STATUS    RESTARTS   AGE
+statefulset.apps/postgresql-ha      2/2     Running   0          30m
+```
+If you see a StatefulSet like postgresql-ha, then describe it:
+```
+kubectl describe statefulset postgresql-ha -n postgresql
+```
+## Step 2 Check if helm deployment exists
+```
+helm list -n postgresql
+```
+### Check if pods were created
+```
+kubectl get pods -n postgresql
+```
+## Debugging CrashLoopBackOff or Error states
+```
+kubectl logs <pod-name> -n postgresql
+```
+##Redeploy the script something like
+```
+helm upgrade --install postgresql . \
+  --set postgresql.password="$(gcloud secrets versions access latest --secret=DB_PASSWORD | tr -d '\n')" \
+  --set postgresql.database="$(gcloud secrets versions access latest --secret=DB_NAME | tr -d '\n')" \
+  -n postgresql
+```
+Then check the statefulset again 
+```
+kubectl get statefulset -n postgresql
+```
+
+Output should look like:
+```
+.
+```

@@ -75,11 +75,11 @@ echo "==== HELM CHART ENDS HERE ====="
 # echo -n "predictx" | gcloud secrets versions add DB_NAME --data-file=-
 
 #Trying this instead
-helm upgrade --install postgresql . \
---set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
-  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
-  --set db_password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
-  --set db_database=$(gcloud secrets versions access latest --secret=DB_NAME)
+#helm upgrade --install postgresql . \
+#--set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
+#  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
+#  --set db_password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
+#  --set db_database=$(gcloud secrets versions access latest --secret=DB_NAME)
 
 # This seems to fail probably because vars need changing as password not optional setting.
 #Corrections for Bitnami Helm Chart Installation with GSM secret store variables
@@ -90,15 +90,21 @@ helm upgrade --install postgresql . \
 #  --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
 #  --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
 #echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
+# Trim output of anything harmful that might compromise helm during --set usage.
+helm upgrade --install postgresql . \
+  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
+  --set postgresql.password="$(gcloud secrets versions access latest --secret=DB_PASSWORD | tr -d '\n')" \
+  --set postgresql.database="$(gcloud secrets versions access latest --secret=DB_NAME | tr -d '\n')" \
+  -n postgresql
+
 
 # INSECURE PROCESS REMOVE FROM PROD BUILDS DANGER DANGER
 # could be cool though if got cluster dns cname and ip and stuff
 echo "==== BEGIN BUILD CREDENTIALS INFO===="
-printf "auth.username: "
-echo $(gcloud secrets versions access latest --secret=DB_USER)
-printf "auth.password: "
+printf "auth.username:postgres"; printf "\n"
+printf "auth.password:"
 echo $(gcloud secrets versions access latest --secret=DB_PASSWORD)
-printf "auth.database: "
+printf "auth.database:"
 echo $(gcloud secrets versions access latest --secret=DB_NAME)
 echo "==== END BUILD CREDENTIALS INFO ===="
 
