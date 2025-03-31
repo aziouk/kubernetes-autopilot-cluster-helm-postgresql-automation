@@ -14,14 +14,14 @@ gcloud auth configure-docker us-docker.pkg.dev
 # pull compatible images recommended by google GKE Documentation
 # google cloud vendor docs are wrong, and multiple versions outdated, what a shocker
 # Google says to use this but had problems before so had added the ones below, trying these again as builds of kube-dns and cluster still broken. ha not working as expected any longer. Probably changed something to mess it up accidentally. 
-./scripts/gcr.sh bitnami/postgresql-repmgr 15.1.0-debian-11-r0
-./scripts/gcr.sh bitnami/postgres-exporter 0.11.1-debian-11-r27
-./scripts/gcr.sh bitnami/pgpool 4.3.3-debian-11-r28
+#./scripts/gcr.sh bitnami/postgresql-repmgr 15.1.0-debian-11-r0
+#./scripts/gcr.sh bitnami/postgres-exporter 0.11.1-debian-11-r27
+#./scripts/gcr.sh bitnami/pgpool 4.3.3-debian-11-r28
 
-# these often need to be changed for builds to succeed
-#./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
-#./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
-#./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
+# these need to be changed for builds to succeed
+./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
+./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
+./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
 
 
 # Verify the packages are stored in repo
@@ -42,7 +42,8 @@ kubectl create namespace $NAMESPACE
 
 # increase replicas to 3set PodAntiAffinity with requiredDuringSchedulingIgnoredDuringExecution and topologykey:"topology.kubernetes.io/zone"
 # used by autopilot and big replica sets only danger [replication is v. expensive] multiplies cloud size etc.
-# kubectl -n $NAMESPACE apply -f scripts/prepareforha.yaml
+# important?
+kubectl -n $NAMESPACE apply -f scripts/prepareforha.yaml
 
 echo "Updating HELM Dependencies"
 # update HELM dependencies
@@ -59,8 +60,8 @@ echo "==== HELM CHART ENDS HERE ====="
 
 # Install Chart Insecure Without Adding User
 
-helm -n postgresql upgrade --install postgresql . \
-    	--set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
+#helm -n postgresql upgrade --install postgresql . \
+#    	--set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 
 # Alternative 1 SECURING HELM DBMS Installation Procedure using Google Secret Store
 # for this below section to work the gcloud secret must be predefined. Set it like so in gcloud;
@@ -78,13 +79,13 @@ helm -n postgresql upgrade --install postgresql . \
 
 
 #Corrections for Bitnami Helm Chart Installation with GSM secret store variables
-#echo "==== HELM CHART INSTALL BEGINS HERE, for $PROJECT_ID.$SOURCE_CLUSTER====="
-#helm upgrade --install postgresql . \
-#  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
-#  --set auth.username=$(gcloud secrets versions access latest --secret=DB_USER) \
-#  --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
-#  --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
-#echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
+echo "==== HELM CHART INSTALL BEGINS HERE, for $PROJECT_ID.$SOURCE_CLUSTER====="
+helm upgrade --install postgresql . \
+  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
+  --set auth.username=$(gcloud secrets versions access latest --secret=DB_USER) \
+  --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
+  --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
+echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
 
 # INSECURE PROCESS REMOVE FROM PROD BUILDS DANGER DANGER
 # could be cool though if got cluster dns cname and ip and stuff
@@ -103,6 +104,9 @@ echo "==== END BUILD CREDENTIALS INFO ===="
 #REVISION: 1
 #TEST SUITE: None
 ###
+
+echo "Giving helm some grace time before attempting to pull build from kubectl get..."
+sleep 30
 
 # Verify that the PostgreSQL Replicas are Running
 kubectl get all -n $NAMESPACE

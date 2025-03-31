@@ -50,6 +50,7 @@ module "gke-db1" {
   ip_range_pods            = "ip-range-pods-db1"
   ip_range_services        = "ip-range-svc-db1"
   create_service_account   = true
+  release_channel          = "RAPID"
   enable_private_endpoint  = false
   enable_private_nodes     = true
   master_ipv4_cidr_block   = "172.16.0.0/28"
@@ -85,8 +86,9 @@ module "gke-db1" {
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-2"
-      node_locations  = "us-central-1a"
+      node_locations  = "us-central1-a"
       auto_repair     = true
+      Auto_upgrade    = true
     },
   ]
   node_pools_labels = {
