@@ -1491,7 +1491,7 @@ replicaset.apps/postgresql-postgresql-ha-pgpool-8479dbf9d         1         1   
 
 NAME                                                   READY   AGE
 statefulset.apps/postgresql-postgresql-ha-postgresql   1/3     34s
-
+```
 
 Then check the statefulset again 
 ```
