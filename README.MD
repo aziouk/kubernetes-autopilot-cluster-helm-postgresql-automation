@@ -1650,3 +1650,4 @@ is what I hope to cover next. That and shorten the readme by about 1000 lines.
 curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
 
+final TODO: expose port or create vpn gateway / bastion for privatenet and document process etc
