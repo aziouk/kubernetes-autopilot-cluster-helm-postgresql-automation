@@ -1626,3 +1626,20 @@ psql -h \$HOST_PGPOOL -U \$TERTIARY_USER -d \$TERTIARY_DATABASE -tAc \"SELECT 1;
 echo 'Main postgres user and tertiary user have access to their respective databases.' || \
 echo 'Either the main postgres user or tertiary user does not have access to their respective database.'"
 ```
+
+Simple oneliner to test
+
+```kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
+export PGUSER='postgres' && \
+export PGPASSWORD='$PGPASSWORD' && \
+export PGDATABASE='$PGDATABASE' && \
+psql -h postgresql-postgresql-ha-pgpool -U \$PGUSER -d \$PGDATABASE -tAc 'SELECT 1;' && \
+echo 'Postgres user can connect to the database.' || \
+echo 'Postgres user cannot connect to the database.'"
+```
+
+I am a bit tired, so these oneliners are a bit obtuse to say the least. Will streamline for a great automation.
+Now, the cluster will build from start to finish without user intervention both gke standard, and the stateful postgres ha. 
+
+## Disaster Recovery and Migration
+is what I hope to cover next. That and shorten the readme by about 1000 lines.
