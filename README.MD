@@ -12,6 +12,20 @@ This resource consists of two components 1. Terraform Templates for **Google Kub
 # ⚡ Quick Start
 Before using the Quick Start installers please view the prequisites and GSM Setup needed for the automation components to run securely. It is important to understand that automation expects <mark> Google Secrets Manager must be first initialized</mark> and without that being done installs of helm postgresql chart on the cluster will fail. If you have initialized GSM and installed the pre-requirements you can proceed immediately to the [install section](https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/tree/master?tab=readme-ov-file#install-method-1)
 
+# Install Method 1
+```
+wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
+cat autoinstaller.sh
+chmod +x ./autoinstaller.sh && ./autoinstaller.sh
+```
+# Install Method 2
+```
+curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
+```
+This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
+<mark> Autoinstaller supports gke-standard cluster via terraform and helm chart postgresql. gke-autopilot not production ready yet. </mark>
+
+
 ## Initaializing GSM for First time
 <p align="left">
   <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer to succeed. Helm Chart autoinstaller automation uses credentials from GSM to support deployment, without it builds will fail.
@@ -41,21 +55,6 @@ gcloud secrets versions access latest --secret=DB_USER
 gcloud secrets versions access latest --secret=DB_PASSWORD
 gcloud secrets versions access latest --secret=DB_NAME
 ```
-
-
-
-# Install Method 1
-```
-wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
-cat autoinstaller.sh
-chmod +x ./autoinstaller.sh && ./autoinstaller.sh
-```
-# Install Method 2
-```
-curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
-```
-This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
-<mark> Autoinstaller supports gke-standard cluster via terraform and helm chart postgresql. gke-autopilot not production ready yet. </mark>
 
 ## 📌 Prerequisites
 
@@ -1259,3 +1258,42 @@ No resources found in postgresql namespace.
 ```
 I think this might break stuff. 
 
+Cofirming the source of the issue was Chart VARS not getting passed or changing between versions, will track this and fix it soon.
+```[root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
+
+Launching Pod pg-client in the namespace postgresql ...
+Error from server (NotFound): secrets "postgresql-postgresql-ha-postgresql" not found
+Error from server (NotFound): secrets "postgresql-postgresql-ha-postgresql" not found
+pod/pg-client created
+waiting for the Pod to be ready
+```
+
+We are getting close to fully working again.
+```
+[root@localhost gke-stateful-postgres]# kubectl get all
+NAME                                                        READY   STATUS             RESTARTS        AGE
+pod/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4-qm2fq   1/1     Running            0               25m
+pod/postgresql-postgresql-ha-pgpool-8479dbf9d-pgh8w         1/1     Running            0               25m
+pod/postgresql-postgresql-ha-postgresql-0                   2/2     Running            0               25m
+pod/postgresql-postgresql-ha-postgresql-1                   1/2     CrashLoopBackOff   9 (3m13s ago)   25m
+pod/postgresql-postgresql-ha-postgresql-2                   1/2     CrashLoopBackOff   9 (3m7s ago)    25m
+
+NAME                                                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                                     ClusterIP   192.168.64.1     <none>        443/TCP    82m
+service/postgresql-postgresql-ha-pgpool                ClusterIP   192.168.85.158   <none>        5432/TCP   25m
+service/postgresql-postgresql-ha-postgresql            ClusterIP   192.168.100.68   <none>        5432/TCP   25m
+service/postgresql-postgresql-ha-postgresql-headless   ClusterIP   None             <none>        5432/TCP   25m
+service/postgresql-postgresql-ha-postgresql-metrics    ClusterIP   192.168.99.117   <none>        9187/TCP   25m
+
+NAME                                                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/postgresql-postgresql-bootstrap-pgpool   1/1     1            1           25m
+deployment.apps/postgresql-postgresql-ha-pgpool          1/1     1            1           25m
+
+NAME                                                              DESIRED   CURRENT   READY   AGE
+replicaset.apps/postgresql-postgresql-bootstrap-pgpool-d6dd4dd4   1         1         1       25m
+replicaset.apps/postgresql-postgresql-ha-pgpool-8479dbf9d         1         1         1       25m
+
+NAME                                                   READY   AGE
+statefulset.apps/postgresql-postgresql-ha-postgresql   1/3     25m
+
+```
