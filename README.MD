@@ -1322,3 +1322,5 @@ Pod: pg-client is healthy
 ```
 
 Unless kubedns fails again, and I find that you now have to generate yaml file to reload coredns services, and google removed 404'ing the yaml file mentioned in documentation.  That's all folks. It's a long fu, and needs shortening for real documentation.
+
+Last TODO: need to fix google terraform version to ~>5.00 so i can use the delete_protection = false flag. It's been a real pain having to destroy the cluster heads manually. Terraform removes all the nodes and rules, just, not the cluster. Apparently the delete protection flag was introduced in versions over 5.00. This needs addressing for terraform destroy to work as expected. 
