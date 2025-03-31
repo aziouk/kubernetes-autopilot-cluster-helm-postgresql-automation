@@ -30,6 +30,8 @@ provider "kubernetes" {
   # Default config will automatically use the gcloud credentials set up
   # No need to explicitly set 'load_config_file', it'll use your default kubeconfig context
 }
+
+
 resource "kubernetes_service" "postgres_service" {
   metadata {
     name = "postgres-service"
