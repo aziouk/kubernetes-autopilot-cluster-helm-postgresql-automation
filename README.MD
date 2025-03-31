@@ -227,17 +227,6 @@ I have no name!@pg-client:/$ quit
 bash: quit: command not found
 ```
 
-This may not be permanent, to make it permanent we need to make sure pg_hba passwd gts updated:
-```
-I have no name!@pg-client:/$ kubectl exec -it pg-client -n postgresql -- /bin/bash
-I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
-postgres=# SHOW hba_file;
-                 hba_file
-------------------------------------------
- /opt/bitnami/postgresql/conf/pg_hba.conf
-(1 row)
-
-```
 ## Checking User Tables
 
 ```
