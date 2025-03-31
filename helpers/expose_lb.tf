@@ -15,29 +15,21 @@ terraform {
 
 # Google Cloud provider configuration
 provider "google" {
-  version = "< 5.0"  # This will use any version below v5.0
   project = var.project_id
   region  = var.region
 }
 
-provider "kubernetes" {
-  host                   = data.google_container_cluster.gke_cluster.endpoint
-  cluster_ca_certificate = base64decode(data.google_container_cluster.gke_cluster.master_auth[0].cluster_ca_certificate)
-  load_config_file       = false
-}
-
-
-# Use the default client config to get credentials for the GKE cluster
-#data "google_client_config" "default" {}
-
-# Get the credentials for the GKE cluster
 data "google_container_cluster" "gke_cluster" {
-  name     = "postgresql-postgresql-ha-postgresql"  # Your GKE cluster name
+  name     = "cluster-db1"
   location = var.region
 }
 
 
-# Expose the existing PostgreSQL StatefulSet as a LoadBalancer service
+# Kubernetes provider configuration using gcloud credentials
+provider "kubernetes" {
+  # Default config will automatically use the gcloud credentials set up
+  # No need to explicitly set 'load_config_file', it'll use your default kubeconfig context
+}
 resource "kubernetes_service" "postgres_service" {
   metadata {
     name = "postgres-service"
@@ -45,12 +37,7 @@ resource "kubernetes_service" "postgres_service" {
 
   spec {
     selector = {
-      "app.kubernetes.io/component" = "postgresql"  # Match the label for your StatefulSet pods
-      "app.kubernetes.io/instance"  = "postgresql"
-      "app.kubernetes.io/managed-by" = "Helm"
-      "app.kubernetes.io/name"      = "postgresql-ha"
-      "app.kubernetes.io/version"   = "16.0.0"  # Adjust if necessary
-      "role"                        = "data"  # Adjust if necessary
+      "app.kubernetes.io/instance" = "postgresql"  # Make sure this matches your StatefulSet's labels
     }
 
     port {
