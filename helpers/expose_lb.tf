@@ -37,9 +37,10 @@ resource "kubernetes_service" "postgres_service" {
 
   spec {
     selector = {
-      "app.kubernetes.io/instance" = "postgresql"  # Make sure this matches your StatefulSet's labels
+      "app.kubernetes.io/instance" = "postgresql"  # Using the label from your StatefulSet
+      "app.kubernetes.io/component" = "postgresql"  # Added for more specific selection
+      "role"                         = "data"  # If you want to target data role specifically
     }
-
     port {
       port        = 5432
       target_port = 5432
@@ -52,4 +53,8 @@ resource "kubernetes_service" "postgres_service" {
 # Output the project_id to confirm it was set correctly
 output "project_id" {
   value = var.project_id
+}
+# Output ipv4 public addr of cluster for postgresql outside
+output "load_balancer_ip" {
+  value = kubernetes_service.postgres_service.status[0].load_balancer[0].ingress[0].ip
 }
