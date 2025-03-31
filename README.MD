@@ -1541,6 +1541,23 @@ statefulset.apps/postgresql-postgresql-ha-postgresql   3/3     4m12s
 ```
 
 ## Check all is alive and well with the pgclient launcher
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# cd gke-stateful-postgres/
+[root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
+
+Launching Pod pg-client in the namespace postgresql ...
+Error from server (AlreadyExists): pods "pg-client" already exists
+waiting for the Pod to be ready
+Copying script files to the target Pod pg-client ...
+Pod: pg-client is healthy
+
+[root@localhost gke-stateful-postgres]# #kubectl exec -it pg-client -n postgresql -- /bin/bash
+[root@localhost gke-stateful-postgres]# cd gke-stateful-postgres/^C
+[root@localhost gke-stateful-postgres]# kubectl exec -it pg-client -n postgresql -- /bin/bash
+I have no name!@pg-client:/$ postgres --version
+postgres (PostgreSQL) 15.1
+```
+
 #
 # Configuring Tertiary Account
 The Helm script uses --secret=DB_PASSWORD and DB_NAME, DB_USER is unused by helm template.
@@ -1570,11 +1587,18 @@ TERTIARY_DATABASE=$(gcloud secrets versions access latest --secret=TERTIARY_DATA
 
 # TEST Primary & Tertiary User working
 ```
-export PGPASSWORD && \
-psql -h $HOST_PGPOOL -U $PGUSER -d $PGDATABASE -tAc "SELECT 1;" && \
-psql -h $HOST_PGPOOL -U $TERTIARY_USER -d $TERTIARY_DATABASE -tAc "SELECT 1;" && \
+kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
+export HOST_PGPOOL='postgresql-postgresql-ha-pgpool' && \
+export PGUSER='postgres' && \
+export PGDATABASE='predictx' && \
+export TERTIARY_USER='tertiary_user' && \
+export TERTIARY_DATABASE='tertiary_db' && \
+export PGPASSWORD='your_password_here' && \
+psql -h \$HOST_PGPOOL -U \$PGUSER -d \$PGDATABASE -tAc \"SELECT 1;\" && \
+psql -h \$HOST_PGPOOL -U \$TERTIARY_USER -d \$TERTIARY_DATABASE -tAc \"SELECT 1;\" && \
 echo 'Main postgres user and tertiary user have access to their respective databases.' || \
-echo 'Either the main postgres user or tertiary user does not have access to their respective database.'
+echo 'Either the main postgres user or tertiary user does not have access to their respective database.'"
+echo ""
 ```
 
 ##One-liner to Create the Tertiary User and Database:
@@ -1590,10 +1614,15 @@ echo 'Tertiary user, password, and database created successfully.'"
 ```
 ##Retest Primary (and Tertiary User after adding it) both should report OK
 ```
-export PGPASSWORD && \
-psql -h $HOST_PGPOOL -U $PGUSER -d $PGDATABASE -tAc "SELECT 1;" && \
-psql -h $HOST_PGPOOL -U $TERTIARY_USER -d $TERTIARY_DATABASE -tAc "SELECT 1;" && \
+kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
+export HOST_PGPOOL='postgresql-postgresql-ha-pgpool' && \
+export PGUSER='postgres' && \
+export PGDATABASE='predictx' && \
+export TERTIARY_USER='tertiary_user' && \
+export TERTIARY_DATABASE='tertiary_db' && \
+export PGPASSWORD='your_password_here' && \
+psql -h \$HOST_PGPOOL -U \$PGUSER -d \$PGDATABASE -tAc \"SELECT 1;\" && \
+psql -h \$HOST_PGPOOL -U \$TERTIARY_USER -d \$TERTIARY_DATABASE -tAc \"SELECT 1;\" && \
 echo 'Main postgres user and tertiary user have access to their respective databases.' || \
-echo 'Either the main postgres user or tertiary user does not have access to their respective database.'
+echo 'Either the main postgres user or tertiary user does not have access to their respective database.'"
 ```
-s
