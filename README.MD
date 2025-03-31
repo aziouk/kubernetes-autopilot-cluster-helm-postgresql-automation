@@ -144,7 +144,7 @@ terraform -chdir=terraform/gke-standard plan -var project_id=$PROJECT_ID
 terraform -chdir==terraform/gke-standard apply -var project_id=$PROJECT_ID
 ```
 ## Helm Installer for PostgreSQL
-The Helm installer provided by helm_deploy_postgres.sh will automate the docker image pull and installation to the GKE Cluster using the setenv project variables and project namespace in kubectl. If you have issues with image installations check your docker status in systemctl status docker. Even though your pushing to remote, you still need a docker socket locally on the controlling machine to communicate with the remote instances in gcloud forming the cluster.
+The Helm installer provided by helm_deploy_postgresql.sh automates the docker image pull and installation to the GKE Cluster using the setenv project variables and project namespace in kubectl. If you have issues with image installations check your docker status in systemctl status docker. Even though your pushing to remote, you still need a docker socket locally on the controlling machine to communicate with the remote instances in gcloud forming the cluster.
 
 <p align="left">
   <strong>⚠️ Warning:</strong> Google Cloud Documentation Examples has unmaintained/stale templates, instructions for helm dependencies scripts can not be trusted as correct.
@@ -527,7 +527,7 @@ EOT
 ```
 ## Summary
 
-There are two main components at present, the first piece of the automation is <mark> Google Cloud GKE Cluster terraform build component</mark> and the second the <mark>kube-credentials-handler-docker-image-deploy-chart</mark> installer component (helm_deploy_postgres.sh), which carries out the necessary tasks to install charts. Further down a rough outline of a terraform script that performs gke cluster creation and a helm upgrade install within a single script. This is still a rough outline though and isn't as complete as the gke-standard and gke-autopilot cluster autoscale examples provided.
+There are two main components at present, the first piece of the automation is <mark> Google Cloud GKE Cluster terraform build component</mark> and the second the <mark>kube-credentials-handler-docker-image-deploy-chart</mark> installer component (helm_deploy_postgresql.sh), which carries out the necessary tasks to install charts. Further down a rough outline of a terraform script that performs gke cluster creation and a helm upgrade install within a single script. This is still a rough outline though and isn't as complete as the gke-standard and gke-autopilot cluster autoscale examples provided.
 
 ## Comments
 
