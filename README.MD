@@ -587,12 +587,7 @@ You can use the script to apply automatically using the 4th -- argument. Careful
 Automation usage supports 5 flags be careful wth sanitize, it can be dangerous.
 ```
 # ./fix-iam-policy-bindings.sh SECRET_NAME SERVICE_ACCOUNT PROJECT_ID [--] sanitize
-
-Fetching IAM policy for secret: DB_USER in project: predictx-postgrescluster...
-\nCurrent users with access to DB_USER:
-No explicit bindings found (may be inherited).
-\nEnter the service account to have exclusive access (e.g., service-account@project.iam.gserviceaccount.com): service-account@projectx.iam.gserviceaccount.com
-\nGenerated policy.json for exclusive access:
+#output is like, can autoexecute with --, sanitize work in progress.
 {
   "bindings": [
     {
