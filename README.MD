@@ -295,7 +295,7 @@ predictx=> quit
 ```
 Above block for debugging/testing automation for /tmp/scripts/create-user.sql and /tmp/scripts/launch-master.sh
 
-# Working Automation for Executing Database Tasks
+# Automating tasks on remote pods using script copy util 
 (Such as creating user, database, password in master cluster configuration.)
 This seems like not the best way to do it and a plugin/addin will do it better like postgresql --set parameter variable for the existing mod etc.
 
