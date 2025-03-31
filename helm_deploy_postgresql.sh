@@ -31,6 +31,7 @@ gcloud artifacts docker images list us-docker.pkg.dev/$PROJECT_ID/main \
 
 # Configure Credentials for kubectl cli access of primary cluster
 
+#temp override to fix bug
 echo "Getting credentials for cluster..."
 gcloud container clusters get-credentials $SOURCE_CLUSTER \
 --region=$REGION --project=$PROJECT_ID
@@ -43,7 +44,7 @@ kubectl create namespace $NAMESPACE
 # increase replicas to 3set PodAntiAffinity with requiredDuringSchedulingIgnoredDuringExecution and topologykey:"topology.kubernetes.io/zone"
 # used by autopilot and big replica sets only danger [replication is v. expensive] multiplies cloud size etc.
 # important?
-kubectl -n $NAMESPACE apply -f scripts/prepareforha.yaml
+#kubectl -n $NAMESPACE apply -f scripts/prepareforha.yaml
 
 echo "Updating HELM Dependencies"
 # update HELM dependencies
@@ -72,20 +73,22 @@ echo "==== HELM CHART ENDS HERE ====="
 # echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
 # echo -n "predictx" | gcloud secrets versions add DB_NAME --data-file=-
 
-#helm upgrade --install postgresql ./helm-chart \
-#  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
-#  --set db_password=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
-#  --set db_database=$(gcloud secrets versions access latest --secret=DB_DATABASE)
-
-
-#Corrections for Bitnami Helm Chart Installation with GSM secret store variables
-echo "==== HELM CHART INSTALL BEGINS HERE, for $PROJECT_ID.$SOURCE_CLUSTER====="
+#Trying this instead
 helm upgrade --install postgresql . \
-  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
-  --set auth.username=$(gcloud secrets versions access latest --secret=DB_USER) \
-  --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
-  --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
-echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
+--set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
+  --set db_user=$(gcloud secrets versions access latest --secret=DB_USER) \
+  --set db_password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
+  --set db_database=$(gcloud secrets versions access latest --secret=DB_NAME)
+
+# This seems to fail probably because vars need changing as password not optional setting.
+#Corrections for Bitnami Helm Chart Installation with GSM secret store variables
+#echo "==== HELM CHART INSTALL BEGINS HERE, for $PROJECT_ID.$SOURCE_CLUSTER====="
+#helm upgrade --install postgresql . \
+#  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
+#  --set auth.username=$(gcloud secrets versions access latest --secret=DB_USER) \
+#  --set auth.password=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
+#  --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
+#echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
 
 # INSECURE PROCESS REMOVE FROM PROD BUILDS DANGER DANGER
 # could be cool though if got cluster dns cname and ip and stuff

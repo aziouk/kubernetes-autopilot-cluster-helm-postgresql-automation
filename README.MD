@@ -1203,3 +1203,14 @@ PodUnschedulable Cannot schedule pods: No preemption victims found for incoming 
 PodUnschedulable Cannot schedule pods: node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}.
 PodUnschedulable Cannot schedule pods: node(s) didn't match Pod's node affinity/selector.
 ```
+
+Fixed main repo kube-dns issues, new build failures, and health alerts, but at least kube-dns is fixed, nothing was working without that in the ha group.
+```
+kube-dns-5d469d74b4-bzp6p                                        4/4     Running   0          58m
+kube-dns-5d469d74b4-z2btd                                        4/4     Running   0          54m
+kube-dns-autoscaler-6c87cf5796-xws6j                             1/1     Running   0          56m
+
+```
+
+Increased the values of cluster temporarily to test helm builds and provisioning, the will slowly reduce.
+
