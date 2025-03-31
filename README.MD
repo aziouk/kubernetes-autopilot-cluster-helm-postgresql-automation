@@ -1557,7 +1557,7 @@ gcloud secrets create TERTIARY_DATABASE --data-file=<(echo -n "tertiary_database
 ```
 Be sure to wipe your history afterwards.
 #SET GSM Postgress Admin PGUSER and TERTIARY USER
-~~PGUSER=$(gcloud secrets versions access latest --secret=DB_USER)~~ UNUSED BY HELM - chart only accepts password and dbname for admin account. That doesnt matter we can simulate it.
+Note DB_USER Secret unused, as helm chart only accepts password and dbname for admin account. That doesnt matter we can simulate it, see below.
 ```
 PGUSER="postgres"
 PGPASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
