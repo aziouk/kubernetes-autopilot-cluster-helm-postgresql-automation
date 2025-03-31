@@ -268,7 +268,7 @@ echo 'px-user does not exist or lacks access to the predictx database'"
 
 As time goes by these checks will be integrated into the terraform/helm automation components.
 
-# Resolved (will remove later)
+# Prodding HA Master with pgclient
 ```
 I have no name!@postgresql-postgresql-ha-postgresql-0:/$ kubectl exec -it postgresql-postgresql-ha-postgresql-0 -n postgresql -- psql -U postgres
 bash: kubectl: command not found
