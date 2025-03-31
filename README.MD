@@ -1643,3 +1643,9 @@ Now, the cluster will build from start to finish without user intervention both 
 
 ## Disaster Recovery and Migration
 is what I hope to cover next. That and shorten the readme by about 1000 lines.
+
+## Theoretically you can do nearly all this above with just this one line
+```
+curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
+```
+
