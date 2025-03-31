@@ -1239,3 +1239,23 @@ Come to think of it, I think this issue started when I changed helm password aut
 
 todo fix helm password automation (last step of helm autoinstall).
 
+#This error from helm installer may be related to failing build
+#==== HELM CHART ENDS HERE =====
+#
+```
+W0331 04:53:51.449662 1396621 warnings.go:70] spec.template.spec.topologySpreadConstraints[0].labelSelector: a null labelSelector results in matching no pod
+NAME: postgresql
+LAST DEPLOYED: Mon Mar 31 04:53:46 2025
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+==== BEGIN BUILD CREDENTIALS INFO====
+```
+
+#Namespace also missing labels/tags
+```[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get all -n $NAMESPACE
+No resources found in postgresql namespace.
+```
+I think this might break stuff. 
+
