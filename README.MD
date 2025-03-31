@@ -1,7 +1,7 @@
 # 🚀 Deploy PostgreSQL on GKE with Terraform
 
 ## What this does
-This provides terraform and helm automation templates for multi region, redundant, stateful Google Cloud GKE Cluster, for PostgreSQL using Helm Charts and Docker-Kubernetes as a deployment strategy.
+This provides terraform and helm automation templates for multi region, redundant, stateful Google Cloud GKE Cluster, for PostgreSQL HA using Helm Charts and Docker-Kubernetes as a deployment strategy.
 
 This github repo collection uses the reference samples from google cloud. We have forked it at https://github.com/aziouk/kubernetes-engine-samples and that fork is a subrepo of this repo. The GoogleCloudPlatform samples repo can be found [here](https://github.com/GoogleCloudPlatform/kubernetes-engine-samples).
 
