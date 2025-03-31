@@ -765,8 +765,9 @@ I will come back to this hopefully and fix it.
 
 I fixed it. I wrote a new master-client for the 0th node postgresql-postgresql-ha-postgresql-0 to upload the necessary init db scripts. Theoretically client-connect pgclient script can be adapted to switch to any pod and upload the /tmp/scripts for workload/population on postgresql etc.
 
-
-# Documenting a Strange GKE Kube-DNS Build Issue
+# Here lays GKE Cloud Cluster Helm f00
+#
+## Documenting a Strange GKE Kube-DNS Build Issue
 
 The DNS failure stops the postgresql-ha group from communicating with eachother.
 
