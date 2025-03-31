@@ -1569,7 +1569,8 @@ TERTIARY_DATABASE=$(gcloud secrets versions access latest --secret=TERTIARY_DATA
 
 
 # TEST Primary & Tertiary User working
-```export PGPASSWORD && \
+```
+export PGPASSWORD && \
 psql -h $HOST_PGPOOL -U $PGUSER -d $PGDATABASE -tAc "SELECT 1;" && \
 psql -h $HOST_PGPOOL -U $TERTIARY_USER -d $TERTIARY_DATABASE -tAc "SELECT 1;" && \
 echo 'Main postgres user and tertiary user have access to their respective databases.' || \
