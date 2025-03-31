@@ -1577,7 +1577,7 @@ echo 'Either the main postgres user or tertiary user does not have access to the
 ```
 
 ##One-liner to Create the Tertiary User and Database:
-
+```
 kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
 TERTIARY_USER=\$(gcloud secrets versions access latest --secret=TERTIARY_USER) && \
 TERTIARY_PASSWORD=\$(gcloud secrets versions access latest --secret=TERTIARY_PASSWORD) && \
@@ -1586,9 +1586,10 @@ psql -h \$HOST_PGPOOL -U postgres -c \"CREATE USER \$TERTIARY_USER WITH PASSWORD
 psql -h \$HOST_PGPOOL -U postgres -c \"CREATE DATABASE \$TERTIARY_DATABASE;\" && \
 psql -h \$HOST_PGPOOL -U postgres -c \"GRANT ALL PRIVILEGES ON DATABASE \$TERTIARY_DATABASE TO \$TERTIARY_USER;\" && \
 echo 'Tertiary user, password, and database created successfully.'"
-
+```
 ##Retest Primary (and Tertiary User after adding it) both should report OK
-```export PGPASSWORD && \
+```
+export PGPASSWORD && \
 psql -h $HOST_PGPOOL -U $PGUSER -d $PGDATABASE -tAc "SELECT 1;" && \
 psql -h $HOST_PGPOOL -U $TERTIARY_USER -d $TERTIARY_DATABASE -tAc "SELECT 1;" && \
 echo 'Main postgres user and tertiary user have access to their respective databases.' || \
