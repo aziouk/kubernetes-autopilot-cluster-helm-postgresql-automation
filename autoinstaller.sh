@@ -23,7 +23,8 @@ echo "Starting Terraform apply..."
 #comment this line when doing unsupervised installations
 #terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster
 #uncoment this line to auto-approve template (WARNING: DANGER) for unsupervised installations
-terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster --auto-approve
+terraform -chdir=terraform/gke-standard apply -var project_id=predictx-postgrescluster
+# --auto-approve disaled to prevent nasty disasters for people running the script simply readd --auto-approve to the end of the above line if you wish this danger
 
 #
 
@@ -32,9 +33,11 @@ cd ../
 chmod +x helm_deploy_postgresql.sh
 ./helm_deploy_postgresql.sh
 
-echo "Deprecated: Optional db automation tasks [this is not for prod]"
-echo "Info: this is deprecated, in place of GSM and Helm Chart vars, but script could be useful for populating data and running other tests etc"
-cd $rootpath
-echo "performing remaining db tasks via automation script"
-chmod +x execute-database-tasks.sh
-./execute-database-tasks.sh
+# Handled by Helm and GSM now but handy to have
+
+#echo "Deprecated: Optional db automation tasks [this is not for prod]"
+#echo "Info: this is deprecated, in place of GSM and Helm Chart vars, but script could be useful for populating data and running other tests etc"
+#cd $rootpath
+#echo "performing remaining db tasks via automation script"
+#chmod +x execute-database-tasks.sh
+#./execute-database-tasks.sh
