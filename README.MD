@@ -320,17 +320,15 @@ done in 90.44 s (drop tables 0.00 s, create tables 0.02 s, client-side generate 
 ## Configuring Monitoring Service Dashboard
 
 ```bash
-[root@localhost gke-stateful-postgres]# echo $PROJECT_ID
-predictx-postgrescluster
-[root@localhost gke-stateful-postgres]# cd monitoring/
-[root@localhost monitoring]# gcloud monitoring dashboards create \
+echo $PROJECT_ID
+#predictx-postgrescluster
+gke-stateful-postgres]# cd monitoring/
+gcloud monitoring dashboards create \
         --config-from-file=dashboard/postgresql-overview.json \
         --project=$PROJECT_ID
 gcloud monitoring dashboards create \
         --config-from-file dashboard/gke-postgresql.json \
         --project $PROJECT_ID
-Created [0cc3adf6-2082-4ddc-a8b9-9b6c63521817].
-Created [f36667d9-1d73-45fe-84de-383774c07d55].
 ```
 The above script adds monitoring to your google dashboard under "Custom" Filter, Named **GKE Postgresql Cluster** and **PostgresOverview** respectively
 
