@@ -23,7 +23,7 @@ chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
 This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
-<mark> Autoinstaller supports gke-standard cluster via terraform and helm chart postgresql. gke-autopilot not production ready yet. </mark>
+Autoinstaller supports gke-standard cluster via terraform and helm chart postgresql. gke-autopilot not production ready yet. 
 
 
 ## Initaializing GSM for First time
