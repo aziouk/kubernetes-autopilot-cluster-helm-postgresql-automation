@@ -1297,3 +1297,28 @@ NAME                                                   READY   AGE
 statefulset.apps/postgresql-postgresql-ha-postgresql   1/3     25m
 
 ```
+
+# Fixing PG Client Image Pull Failure
+It seems that it is trying to pull different helm images sometimes depending on the gke version/build and the helmdependency lists. Here is how I fixed the workload;
+
+See below solution, also enabled in helm script.
+[root@localhost gke-stateful-postgres]# ./scripts/gcr.sh bitnami/postgresql-repmgr 15.1.0-debian-11-r0
+Working on project: predictx-postgrescluster
+15.1.0-debian-11-r0: Pulling from bitnami/postgresql-repmgr
+Digest: sha256:2bf6e92edd90563f71594a83ffb85dedc4cd585e1e20eff0e606cf699588b44b
+Status: Image is up to date for bitnami/postgresql-repmgr:15.1.0-debian-11-r0
+
+Whilst confirming pgclient then appeared greenlighted, I try the pgclient, it seems indeed the versio of helms postgresql was expecting slightly different secret format than I anticipated; I think that once this is resolved that builds should suceed completely. 
+```
+[root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
+
+Launching Pod pg-client in the namespace postgresql ...
+Error from server (NotFound): secrets "postgresql-postgresql-ha-postgresql" not found
+Error from server (NotFound): secrets "postgresql-postgresql-ha-postgresql" not found
+Error from server (AlreadyExists): pods "pg-client" already exists
+waiting for the Pod to be ready
+Copying script files to the target Pod pg-client ...
+Pod: pg-client is healthy
+```
+
+Unless kubedns fails again, and I find that you now have to generate yaml file to reload coredns services, and google removed 404'ing the yaml file mentioned in documentation.  That's all folks. It's a long fu, and needs shortening for real documentation.
