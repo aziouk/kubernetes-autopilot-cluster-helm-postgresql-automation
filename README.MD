@@ -757,6 +757,107 @@ I will come back to this hopefully and fix it.
 
 I fixed it. I wrote a new master-client for the 0th node postgresql-postgresql-ha-postgresql-0 to upload the necessary init db scripts. Theoretically client-connect pgclient script can be adapted to switch to any pod and upload the /tmp/scripts for workload/population on postgresql etc.
 
+# Performing Rolling Upgrades on the Stateful GKE Postgres Cluster
+It is possible to perform rolling, reversible upgrades of the database when configured this way. The procedure to update components is as follows.
+
+## Push Updated version of desired upgrade component package
+```
+NEW_IMAGE=us-docker.pkg.dev/$PROJECT_ID/main/bitnami/postgresql-repmgr:15.1.0-debian-11-r1
+./scripts/gcr.sh bitnami/postgresql-repmgr 15.1.0-debian-11-r1
+```
+
+<mark> Warning before doing this make sure you have the previous_image name:version your replacing or you wont be able to roll it back manually</mark>
+If you dont remember the image, run:
+```
+kubectl describe statefulset -n postgresql postgresql-postgresql-ha-postgresql | grep Image
+```
+
+##Trigger Rolling Update via Gcloud API
+Here we are using $NEW_IMAGE define and stateful set labelname, can use $stateful_cluster_label or similar in automation etc.
+
+```
+kubectl set image statefulset -n postgresql postgresql-postgresql-ha-postgresql postgresql=$NEW_IMAGE
+kubectl rollout restart statefulsets -n postgresql postgresql-postgresql-ha-postgresql
+kubectl rollout status statefulset -n postgresql postgresql-postgresql-ha-postgresql
+```
+
+## Expected Output for Rolling Update
+
+```
+Waiting for 1 pods to be ready...
+waiting for statefulset rolling update to complete 1 pods at revision postgresql-postgresql-ha-postgresql-5c566ccf49...
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+waiting for statefulset rolling update to complete 2 pods at revision postgresql-postgresql-ha-postgresql-5c566ccf49...
+Waiting for 1 pods to be ready...
+Waiting for 1 pods to be ready...
+statefulset rolling update complete 3 pods at revision postgresql-postgresql-ha-postgresql-5c566ccf49...
+```
+
+## Verify Database Availability
+
+Afterwards, or during the rolling upgrade you may use a pg-client pod to verify the databases availability.
+```
+./scripts/launch-client.sh
+kubectl exec -it -n postgresql pg-client -- /bin/bash
+pgbench -i -h $HOST_PGPOOL -U postgres postgres
+```
+
+If you cannot find the password, or are lockd out perform these steps to retrieve the data from gsm secrets/helm secrets.
+
+## Finding postgres Credentials of a stateful ha set
+```
+kubectl get secrets -n postgresql
+
+kubectl describe secret postgresql-postgresql-ha-postgresql -n postgresql
+
+kubectl get secret postgresql-postgresql-ha-postgresql -n postgresql -o yaml
+
+# Retrieve and decode the password data
+kubectl get secret postgresql-postgresql-ha-postgresql -n postgresql -o jsonpath="{.data.password}" | base64 --decode
+kubectl get secret postgresql-postgresql-ha-postgresql -n postgresql -o jsonpath="{.data.repmgr-password}" | base64 --decode
+kubectl get secret postgresql-postgresql-ha-postgresql -n postgresql -o jsonpath="{.data.someotherdata}" | base64 --decode
+
+#For helm specific info try something like;
+
+kubectl get secret sh.helm.release.v1.postgresql.v1 -n postgresql -o jsonpath="{.data.release}" | base64 --decode
+kubectl get secret sh.helm.release.v1.postgresql.v1 -n postgresql -o jsonpath="{.data.release}" | base64 --decode | gzip -d
+
+```
+## Rolling back a failed Upgrade in the stateful DB
+If the db upgrade fails for any reason, it can be manually rolled back like as follows;
+
+```
+kubectl set image statefulset -n postgresql postgresql-postgresql-ha-postgresql postgresql=<previous_image>
+kubectl rollout restart statefulset -n postgresql postgresql-postgresql-ha-postgresql
+kubectl describe statefulset -n postgresql postgresql-postgresql-ha-postgresql | grep Image
+```
+
+If you are deploying via Helm and want to roll back the version you can also use;
+though I am not sure if this best approach.
+```
+helm rollback postgresql <previous_revision> -n postgresql
+```
+
+You can check available revisions using;
+```
+helm history postgresql -n postgresql
+```
+
+## Scale Down AND Restore from Backup
+If upgrades cause data corruption or volume mounting issues, scale down the stateful set, restore from a backup and then scale it back up.
+```
+#scale down replicas
+kubectl scale statefulset postgresql-postgresql-ha-postgresql --replicas=0 -n postgresql
+#scale up replicas after backup restored
+kubectl scale statefulset postgresql-postgresql-ha-postgresql --replicas=3 -n postgresql
+```
+
+Although backup restoration isn't discussed in this section, you should find it below somewhere if it has been written yet.
+
+
+
+
 # Here lays GKE Cloud Cluster Helm f00
 
 ## Documenting a Strange GKE Kube-DNS Build Issue
