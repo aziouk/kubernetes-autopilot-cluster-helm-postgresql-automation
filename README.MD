@@ -1338,7 +1338,202 @@ The script will again, take a backup of the state of the cluster in cluster-db1 
 
 After all this, its google PDB causing the thing to fall apart, one can't help but be frustrated by google cloud in this way. I have definitely resolved this, the instructions are correct. Once google lets me scale again, probably a few hours i'll update the extra info checking the database value was verified at the db2 cluster.
 
-## Verify statefulset 
+# A Grim Situation in postgres GXE HA - guidebook
+The trim situation has been we have multiple problems obfuscating eachother. 
+
+```
+2025-04-01 11:45:23.260: child pid 224: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 11:45:23.260: child pid 224: FATAL:  failed to create a backend 0 connection
+2025-04-01 11:45:23.260: child pid 224: DETAIL:  not executing failover because failover_on_backend_error is off
+2025-04-01 11:45:23.279: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 11:45:23.279: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 0
+2025-04-01 11:45:23.291: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 11:45:23.291: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 1
+2025-04-01 11:45:23.305: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 11:45:23.305: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 2
+2025-04-01 11:45:23.305: main pid 1: LOG:  exit handler called (signal: 15)
+2025-04-01 11:45:23.305: main pid 1: LOG:  shutting down by signal 15
+2025-04-01 11:45:23.305: main pid 1: LOG:  terminating all child processes
+2025-04-01 11:45:23.451: main pid 1: LOG:  Pgpool-II system is shutdown
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pods -n postgresql
+NAME                                              READY   STATUS             RESTARTS        AGE
+pg-client                                         1/1     Running            0               177m
+postgresql-postgresql-ha-pgpool-8479dbf9d-d7jtx   0/1     CrashLoopBackOff   9 (2m20s ago)   20m
+postgresql-postgresql-ha-postgresql-0             2/2     Running            0               90s
+postgresql-postgresql-ha-postgresql-1             0/2     Pending            0               90s
+postgresql-postgresql-ha-postgresql-2             0/2     Pending            0               90s
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm get values postgresql -n postgresql
+```
+
+We can see pgpool is in crashloopbackoff, normally a state from improper helm configuration, however, the ha nodes are failing to get the necessary PDB sometimes inconsistently. We reduce the replicas to 0, and rebuild the clusters normally to resolve this.
+
+## Implement Helm on the Cluster-db2
+```
+
+[root@localhost gke-stateful-postgres]# helm upgrade --install postgresql bitnami/postgresql -n $NAMESPACE --values recovered-namespace-values.yaml
+Release "postgresql" does not exist. Installing it now.
+NAME: postgresql
+LAST DEPLOYED: Tue Apr  1 12:49:02 2025
+NAMESPACE: postgresql
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+CHART NAME: postgresql
+CHART VERSION: 16.6.0
+APP VERSION: 17.4.0
+```
+We want to make sure that it can build succesfully on cluster-db2 before we try to restore the backup again.
+
+```
+[root@localhost gke-stateful-postgres]# kubectl logs -l app=postgresql-postgresql-ha-postgresql -n postgresql
+No resources found in postgresql namespace.
+```
+
+Lets increase the replicas again for the postgresql-postgresql-ha-postgresql node
+
+```
+[root@localhost gke-stateful-postgres]# kubectl scale statefulset postgresql-postgresql-ha-postgresql --replicas=3 -n postgresql^C
+[root@localhost gke-stateful-postgres]# kubectl get pods -n postgresql
+NAME                                              READY   STATUS              RESTARTS         AGE
+pg-client                                         1/1     Running             0                3h
+postgresql-0                                      1/1     Running             0                99s
+postgresql-postgresql-ha-pgpool-8479dbf9d-d7jtx   1/1     Running             10 (5m23s ago)   23m
+postgresql-postgresql-ha-postgresql-0             2/2     Running             0                4m33s
+postgresql-postgresql-ha-postgresql-1             2/2     Running             0                4m33s
+postgresql-postgresql-ha-postgresql-2             0/2     ContainerCreating   0                4s
+```
+
+Looks good now. phew. We should review the logs from postgresql-1 in the ha group to get an idea of whats happening
+
+``` 
+kubectl logs postgresql-postgresql-ha-postgresql-1 -n postgresql
+<shortened snip>
+DEBUG: get_recovery_type(): SELECT pg_catalog.pg_is_in_recovery()
+INFO: standby promoted to primary after 1 second(s)
+DEBUG: setting node 1001 as primary and marking existing primary as failed
+DEBUG: begin_transaction()
+DEBUG: commit_transaction()
+NOTICE: STANDBY PROMOTE successful
+DETAIL: server "postgresql-postgresql-ha-postgresql-1" (ID: 1001) was successfully promoted to primary
+DEBUG: _create_event(): event is "standby_promote" for node 1001
+DEBUG: get_recovery_type(): SELECT pg_catalog.pg_is_in_recovery()
+DEBUG: _create_event():
+   INSERT INTO repmgr.events (              node_id,              event,              successful,              details             )       VALUES ($1, $2, $3, $4)    RETURNING event_timestamp
+DEBUG: _create_event(): Event timestamp is "2025-04-01 11:51:52.163859+00"
+DEBUG: _create_event(): command is '/opt/bitnami/repmgr/events/router.sh %n %e %s "%t" "%d"'
+INFO: executing notification command for event "standby_promote"
+DETAIL: command is:
+  /opt/bitnami/repmgr/events/router.sh 1001 standby_promote 1 "2025-04-01 11:51:52.163859+00" "server \"postgresql-postgresql-ha-postgresql-1\" (ID: 1001) was successfully promoted to primary"
+DEBUG: clear_node_info_list() - closing open connections
+DEBUG: clear_node_info_list() - unlinking
+[2025-04-01 11:51:52] [NOTICE] node 1001 has recovered, reconnecting
+[2025-04-01 11:51:52] [NOTICE] notifying node "postgresql-postgresql-ha-postgresql-2" (ID: 1002) to follow node 1001
+INFO:  node 1002 received notification to follow node 1001
+[2025-04-01 11:51:52] [NOTICE] monitoring cluster primary "postgresql-postgresql-ha-postgresql-1" (ID: 1001)
+2025-04-01 11:52:01.862 GMT [251] LOG:  checkpoint starting: immediate force wait
+2025-04-01 11:52:01.914 GMT [251] LOG:  checkpoint complete: wrote 5 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.004 s, total=0.052 s; sync files=5, longest=0.003 s, average=0.001 s; distance=16383 kB, estimate=31129 kB; lsn=0/E000060, redo lsn=0/E000028
+[2025-04-01 11:52:04] [NOTICE] new standby "postgresql-postgresql-ha-postgresql-0" (ID: 1000) has connected
+[2025-04-01 11:52:10] [NOTICE] new standby "postgresql-postgresql-ha-postgresql-0" (ID: 1000) has connected
+```
+
+and we see an encouraging message. Now cluster-db2 is behaving again. But we don't have the information that was restored in the backup
+```
+I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
+postgres=# \dt
+      List of relations
+ Schema | Name | Type | Owner
+--------+------+------+-------
+(0 rows)
+
+postgres=# /dt
+postgres-# \dt
+      List of relations
+ Schema | Name | Type | Owner
+--------+------+------+-------
+(0 rows)
+
+postgres-# \list
+                                                 List of databases
+   Name    |  Owner   | Encoding |   Collate   |    Ctype    | ICU Locale | Locale Provider |   Access privileges
+-----------+----------+----------+-------------+-------------+------------+-----------------+-----------------------
+ postgres  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            |
+ repmgr    | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            |
+ template0 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+           |          |          |             |             |            |                 | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+           |          |          |             |             |            |                 | postgres=CTc/postgres
+(4 rows)
+```
+After looking around the UI I see that the volumes failed to build. Basically a provisioning issue at GCP end caused all this trouble. I also notice gcp give so so many wrong and misleading error messages, complaining service account doesnt have this var or that role , and so on, despite succesfully implementing this without it the first time. So, all this, provisioning. Annoying but thats life. It will be useful to someone else troubleshooting these issues perhaps.
+
+### Starting again
+Now everything is in order, we should re-attempt the gke-backup. We have an automated shellscript at the moment to do this, if youd prefer to use terraform you can adapt the tf script i created for in helpers/ in the git root of this project.
+
+```
+chmod +x  disaster-recovery.sh
+./disaster-recovery.sh
+```
+After all this shenanigans it looks like provisioning issue, quota issue, min pdb limits and so on, can make the validation of restore and backup states fail. God that is pretty awful situation actually, and I expected more, but, it is a limitation of cloud that we have to live with, this is the problem with a generic and complex system of this nature, it is prone to expensive and time consuming failures that even the cloud provider aren't sure about without expending precious time and money. Using cloud can get expensive if done incorrectly because of problems like these. Migrations that should cost a few hundred will end up costing thousands in man hours and so on. 
+
+IT FAILS AGAIN
+
+```
+------BEGIN MANUAL BACKUP------
+Create in progress for backup bkp-g-db-protected-app-bkp-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743509802516-631b68270ff8e-a00b5444-f5f5810b].
+Creating backup bkp-g-db-protected-app-bkp-plan-01...done.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Backup completed. Backup state: SUCCEEDED
+------END MANUAL BACKUP------
+--------------- BEGIN CREATING RESTORE PLAN ---------------
+Create request issued for: [g-db-protected-app-rest-plan-01]
+Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743509918430-631b68959b43b-9d9b2219-e9930dc4] to complete...done.
+Created restore plan [g-db-protected-app-rest-plan-01].
+--------------- END CREATING RESTORE PLAN ---------------
+--------------- BEGIN EXECUTING RESTORE FOR bkp-g-db-protected-app-bkp-plan-01:, RESTORE TARGET = cluster-db2, FAILED SOURCE was cluster-db1 ---------------
+Create in progress for restore rest-g-db-protected-app-rest-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743509923013-631b6899fa3a1-b518c15c-bbeba696].
+Creating restore rest-g-db-protected-app-rest-plan-01...done.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Restore completed. Restore state: FAILED
+--------------- END EXECUTING RESTORE FOR bkp-g-db-protected-app-bkp-plan-01:, RESTORE TARGET = cluster-db2, FAILED SOURCE was cluster-db1 ---------------
+
+Volume Validation Error: Some of the volume restores failed - projects/998933573494/locations/us-west1/restorePlans/g-db-protected-app-rest-plan-01/restores/rest-g-db-protected-app-rest-plan-01/volumeRestores/vr-9efb72ce44904cd8, projects/998933573494/locations/us-west1/restorePlans/g-db-protected-app-rest-plan-01/restores/rest-g-db-protected-app-rest-plan-01/volumeRestores/vr-9efb75ce449051f1, projects/998933573494/locations/us-west1/restorePlans/g-db-protected-app-rest-plan-01/restores/rest-g-db-protected-app-rest-plan-01/volumeRestores/vr-9efb74ce4490503e
+```
+My god.
+
+## Treating the PDB Budget Scourge once and for all
+Lets increase the PDB limit to a number above 0, basically if its 0 no pods are allowed to be evicted, and I think this upsets the backup/restore functions for some odd reason, or at least, inconsistent backup and restore at the very least.
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pdb -n $NAMESPACE
+NAME                                  MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+postgresql                            N/A             1                 1                     37m
+postgresql-postgresql-ha-pgpool       1               N/A               0                     6m48s
+postgresql-postgresql-ha-postgresql   N/A             1                 0                     6m48s
+```
+The issue lies with the last two PDBs (for postgresql-postgresql-ha-pgpool and postgresql-postgresql-ha-postgresql), where the allowed disruptions is set to 0. This means no pod disruptions are allowed for these resources, which is preventing GKE from performing maintenance. Although there is 'nothing' wrong with the script and it worked ok, and fixed the helm values etc. The second attempts always fail.
+
+ Issue is with the node as toBeDeleted/unschedulable , specifically gke-cluster-db2-nap-e2-standard-2-1lq-38ffa5d9-h5m4. Annoyingly it is deleted before I can look properly which made this really hard on me to fix.
+
+
 # Here lays GKE Cloud Cluster Helm f00
 
 ## Documenting a Strange GKE Kube-DNS Build Issue
