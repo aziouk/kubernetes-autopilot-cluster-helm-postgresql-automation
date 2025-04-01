@@ -42,7 +42,7 @@ This autoinstaller will complete the configuration of both components for google
 Autoinstaller supports gke-standard cluster via terraform and helm chart postgresql. gke-autopilot not production ready yet. 
 
 
-## Initaializing GSM 
+## Initializing GSM 
 <p align="left">
   <strong>⚠️ Warning:</strong> *MUST* be run at least once for helm installer to succeed. Helm Chart autoinstaller automation uses credentials from GSM to support deployment, without it builds will fail.
 Replace <mark>px-user-password</mark>, <mark>px-user</mark> and <mark>px-database</mark> with desired credentials. This must be ran *before* the autoinstaller.
