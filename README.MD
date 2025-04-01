@@ -35,7 +35,7 @@ cat autoinstaller.sh
 chmod +x ./autoinstaller.sh && ./autoinstaller.sh
 ```
 # Install Method 2
-```
+```bash
 curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh | bash
 ```
 This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
@@ -48,7 +48,7 @@ Autoinstaller supports gke-standard cluster via terraform and helm chart postgre
 Replace <mark>px-user-password</mark>, <mark>px-user</mark> and <mark>px-database</mark> with desired credentials. This must be ran *before* the autoinstaller.
 </p>
 
-```
+```bash
 gcloud secrets create DB_PASSWORD --replication-policy="automatic"
 gcloud secrets create DB_USER --replication-policy="automatic"
 gcloud secrets create DB_NAME --replication-policy="automatic"
@@ -59,14 +59,14 @@ echo -n "px-database" | gcloud secrets versions add DB_NAME --data-file=-
 # Recommend to sanitize the plaintext password entry from BASH History something like
 history -d $(history 4 | awk '{print $1}') && history -w
 
-```
+```bash
 Using setenv for credential automation is possible but not recommended due to plaintext storage. A better approach is setting random variables at runtime. If deploy scripts run on a self-destructing bastion, then it might be acceptable but is not best practice. Encrypting credentials within setenv could streamline special cases and increase portability but is less reliable and more maint than using well maintained secret stores like GSM. Managing this via a bucket and helper script is also discouraged.
 
 A preferred approach is generating random credentials at runtime, storing them in GSM, and referencing them in automation. Helm can retrieve these secrets during upgrades, avoiding plaintext exposure and manual initialization of password stores. This method seems most suitable for both production and development and is shown in the helm_deploy_postgresql.sh script. Theoretically credential initialisation should be compartementalized from the build scripts altogether. Build scripts should reference the stores expecting credentials to be pre defined already by a seperate isolated microservice, rather than risk potentially insecurely generating them at build time, as there is a period where credentials are not within GSM, for sensitive systems with pci compliance and public exposure on their network, this is problematic. Even if often undereported.
 
 # Checking if GSM Is already set
 
-```
+```bash
 gcloud secrets versions access latest --secret=DB_USER
 gcloud secrets versions access latest --secret=DB_PASSWORD
 gcloud secrets versions access latest --secret=DB_NAME
@@ -74,7 +74,7 @@ gcloud secrets versions access latest --secret=DB_NAME
 
 ### ✅ Enable Required Google Cloud APIs
 Run the following command to enable required APIs:
-```
+```bash
 gcloud services enable \
   compute.googleapis.com \
   container.googleapis.com \
@@ -86,7 +86,7 @@ gcloud services enable \
 
 The following IAM permissions are required to deploy the GKE cluster and PostgreSQL database:
 
-```
+```bash
 roles/iam.serviceAccountUser
 roles/container.admin
 roles/compute.networkAdmin
@@ -108,7 +108,8 @@ If google unit tested their referenced templates against their own cloud docs th
 
 ## Manual Installation Details
 cd to gke-stateful-postgres
-```git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
+```bash
+git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
 cd kubernetes-autopilot-cluster-helm-postgresql-automation/gke-stateful-postgres
 ```
 then follow the below instructions carefully to carry out manual installation of the automation.
@@ -116,7 +117,7 @@ then follow the below instructions carefully to carry out manual installation of
 
 ## Creating the necessary IAM bindings
 Replacing <mail> with the desired service account user
-```
+```bash
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/storage.objectViewer
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/logging.logWriter
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/artifactregistry.reader
@@ -128,7 +129,7 @@ gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<
 ```
 ## Install GKE Regional (or Zonal) Cluster with Autopilot (flakey)
 By using autopilot it is possible to build a multi region cluster with a redundant backup and nodes in seperate regions, as well as receive additional data for logging and analytics.
-```
+```bash
 #cd gke-stateful-postgres
 terraform -chdir=terraform/gke-autopilot init -var project_id=predictx-postgrescluster
 terraform -chdir=terraform/gke-autopilot plan -var project_id=predictx-postgrescluster
@@ -137,7 +138,7 @@ terraform -chdir=terraform/gke-autopilot apply -var project_id=predictx-postgres
 
 
 ## Install GKE Regional/Zonal Cluster without Autopilot (working)
-```
+```bash
 terraform -chdir=terraform/gke-standard init
 terraform -chdir=terraform/gke-standard plan -var project_id=$PROJECT_ID
 terraform -chdir==terraform/gke-standard apply -var project_id=$PROJECT_ID
@@ -150,12 +151,12 @@ The Helm installer provided by helm_deploy_postgresql.sh automates the docker im
 </p>
 
 You need to check carefully the output before proceeding with helm istallation
-```
+```bash
 helm -n postgresql template postgresql .   --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main"
 ```
 The google doc dependancies are out of date, and these pulls will fail to wrong path as wrong version is used which is now missing from the repo listed. These are the changes as follows, make sure the images are there, by default they aren't retrieving the correct version specified by helm template matched chart versions in google docs. The following are used instead with this version of kubernetes builds:
 
-```
+```bash
 ./scripts/gcr.sh bitnami/postgresql-repmgr 16.6.0-debian-12-r3
 ./scripts/gcr.sh bitnami/postgres-exporter 0.17.1-debian-12-r2
 ./scripts/gcr.sh bitnami/pgpool 4.6.0-debian-12-r2
@@ -176,7 +177,7 @@ chmod +x helm_deploy_postgres.sh
 ```
 ##Connecting to cluster-db instance with pg-client launcher
 
-```
+```bash
 #./terraform/scripts/launch-client.sh
 ./scripts/launch-client.sh
 
@@ -201,7 +202,7 @@ psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
 ```
 ## Create Database, with credentials to named postgresdb
 You can run the command <mark>psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/create-user.sql</mark> maually to update user names, passwords or perform other SQL command sets. GSM is preffered for Security reasons.
-```
+```bash
 [root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
 Launching Pod pg-client in the namespace postgresql ...
 Error from server (AlreadyExists): pods "pg-client" already exists
@@ -228,7 +229,7 @@ bash: quit: command not found
 
 ## Checking User Tables
 
-```
+```bash
 [root@localhost scripts]# kubectl exec -it pg-client -n postgresql -- /bin/bash
 I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
 postgres=# \du
@@ -243,7 +244,7 @@ postgres=# exit
 ```
 
 ## Check Database online/version
-```
+```bash
 kubectl exec -it pg-client -n postgresql -- /bin/bash -c "psql -h \$HOST_PGPOOL -U postgres -c 'SELECT version();' -a -q && echo 'PostgreSQL is running fine' || echo 'PostgreSQL is not running'"
 SELECT version();
                                           version
@@ -257,7 +258,7 @@ PostgreSQL is running fine
 Make sure that your $NAMESPACE and $PROJECT_ID env variable is defined too.
 
 # Check User and Data is added, alternative.
-```
+```bash
 kubectl exec -it pg-client -n postgresql -- /bin/bash -c "\
 psql -h \$HOST_PGPOOL -U postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='px-user';\" && \
 psql -h \$HOST_PGPOOL -U px-user -d predictx -c 'SELECT 1;' -a -q && \
@@ -268,7 +269,7 @@ echo 'px-user does not exist or lacks access to the predictx database'"
 As time goes by these checks will be integrated into the terraform/helm automation components.
 
 # Prodding HA Master with pgclient
-```
+```bash
 I have no name!@postgresql-postgresql-ha-postgresql-0:/$ kubectl exec -it postgresql-postgresql-ha-postgresql-0 -n postgresql -- psql -U postgres
 bash: kubectl: command not found
 I have no name!@postgresql-postgresql-ha-postgresql-0:/$ exit
@@ -298,12 +299,12 @@ Above block for debugging/testing automation for /tmp/scripts/create-user.sql an
 (Such as creating user, database, password in master cluster configuration.)
 This seems like not the best way to do it and a plugin/addin will do it better like postgresql --set parameter variable for the existing mod etc.
 
-```
+```bash
 # this runs as part of the autoinstaller.sh you dont need to run it
 chmod +x execute-database-tasks.sh && ./execute-database-tasks.sh
 ```
 
-```
+```bash
 #test performance with pgbench
 export DB=postgres
 pgbench -i -h $HOST_PGPOOL -U postgres $DB -s 50
@@ -346,7 +347,7 @@ terraform apply -var project_id=$PROJECT_ID -var email_address=$EMAIL
 ## Testing Alerts
 
 If your using critical alerts, important to test them. This can be done easily by reattaching to the host and generating large tuple sets
-```
+```bash
 [root@localhost terraform]# cd ../../../
 [root@localhost gke-stateful-postgres]# kubectl exec -it --namespace postgresql pg-client -- /bin/bash
 I have no name!@pg-client:/$ pgbench -i -h $HOST_PGPOOL -U postgres -s 200 postgres
@@ -358,7 +359,7 @@ generating data (client-side)...
 
 ## Retrieving the Kubectl Raw
 This allow you to check whether you will get the alert and its triggering profile is right etc. That is about it for now. Except that the kubectrl configuration can be obtained in raw format like
-```
+```bash
 # will provide kubeconfig overview for authentication by others.
 # warning command will give away your credentials
 kubectl config view --raw
@@ -416,7 +417,7 @@ Attach to the events/emissions window to verify the unhealthy failure/simulation
 screen -x emissions
 ```
 output should look like:
-```
+```bash
 0s          Normal    Started     pod/postgresql-postgresql-ha-postgresql-0   Started container postgresql
 0s          Warning   Unhealthy   pod/postgresql-postgresql-ha-postgresql-0   Liveness probe failed: psql: error: connection to server at "127.0.0.1", port 5432 failed: Connection refused...
 0s          Warning   Unhealthy   pod/postgresql-postgresql-ha-postgresql-0   Readiness probe failed: psql: error: connection to server at "127.0.0.1", port 5432 failed: Connection refused...
@@ -429,7 +430,7 @@ output should look like:
 ```
 verify the database works after simulating restart/auto recovery
 
-```
+```bash
 [root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
 
 Launching Pod pg-client in the namespace postgresql ...
@@ -458,7 +459,7 @@ make sure you switch the environment properly to get the correct environment or 
 
 ## Procedure for Debugging Common Build Failures
 To obtain debug information and pull status, affiity status and various other deubgging data pertinent to resolving common errors use;
-```
+```bash
 # Describe all pods templates
 kubectl -n postgresql describe pods
 # Overview of 'pods' in projects NAMESPACE
@@ -806,7 +807,7 @@ pgbench -i -h $HOST_PGPOOL -U postgres postgres
 If you cannot find the password, or are lockd out perform these steps to retrieve the data from gsm secrets/helm secrets.
 
 ## Finding postgres Credentials of a stateful ha set
-```
+```bash
 kubectl get secrets -n postgresql
 
 kubectl describe secret postgresql-postgresql-ha-postgresql -n postgresql
@@ -878,7 +879,7 @@ In the event of a disaster on the production cluster-db1 postgres gke statefulse
 
 To prepare to backup and restore your PostgreSQL workload, follow these steps:
 Important information is. Checking the source and target are correct, that the REGION is defined correctly i.e. us-central1 not us-central1a if its a regional, not zonal cluster. Understanding that the REGION is the SOURCE and that the DR_REGION is the target to migrate to. <mark>Please, don't get this wrong. It would be bad.</mark>
-```
+```bash
 export SOURCE_CLUSTER=cluster-db1
 export TARGET_CLUSTER=cluster-db2
 export REGION=us-central1
@@ -891,7 +892,7 @@ export RESTORE_NAME=rest-$RESTORE_PLAN_NAME
 ```
 
 ## Step 2: Verifying Backup for GKE is enabled on the cluster
-```
+```bash
 gcloud container clusters describe $SOURCE_CLUSTER \
     --project=$PROJECT_ID  \
     --region=$REGION \
@@ -902,7 +903,7 @@ If Backup for GKE is enabled, the output of the command shows enabled=True.
 ## Step 3: Set Up the Backup Plan and Test the Restore Works
 Always set up the backup plan and <mark> TEST THE RESTORE WORKS </mark> afterwards. 
 
-```
+```bash
 #Verify status of protectapplication on the cluster-db1 source 
 
 kubectl get ProtectedApplication -A
@@ -958,7 +959,7 @@ gcloud beta container backup-restore restores create $RESTORE_NAME \
 
 ## Verify that the Cluster is restored and has all the expected pods
 First we need to configure kubectl line to access the backup cluster cluster-db2
-```
+```bash
 # verify your target-to-migrate-to is the active authorised object/container 
 gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --project $PROJECT_ID
 kubectl get all -n $NAMESPACE
@@ -977,7 +978,7 @@ data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c9e71a99ccb99a4c   8Gi
 ##Validate Restored Data is Valid (DANGER, WARNING DO NOT SKIP UNDER ANY CIRCUMSTANCES.)
 Do not under any circumstances skip this, doing so could leave you without a 'working' backup. Even if backup succeeds, you may not have the right data, for example if the backups are taken for the $TARGET DR_REGION instead of the $SOURCE REGION.
 
-```
+```bash
 ./scripts/launch-client.sh
 kubectl exec -it pg-client -n postgresql -- /bin/bash
 
@@ -1008,7 +1009,7 @@ chmod +x disater-recovery.sh
 ```
 
 Output will look like below
-```
+```bash
 
 === WARNING IMPORTANT INFORMATION FOR BACKUP PLAN UNIT TESTING ===
 Backing up data on cluster-db1 in us-central1, to be migrated to => cluster-db2 in us-west1 , for the app g-db-protected-app.
@@ -1027,14 +1028,14 @@ postgresql   postgresql-ha   true
 START EXPORTS
 END EXPORTS
 Create request issued for: [g-db-protected-app-bkp-plan-01]
-Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501768819-631b4a39882fb-5415ffa5-6703920f] to complete...done.
+Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743494776028-631b302cafbff-6a9cec5b-ccf42575] to complete...done.
 Created backup plan [g-db-protected-app-bkp-plan-01].
 -------------- END CREATING BACKUP PLAN --------------
 Trying to manually create a backup for bkp-g-db-protected-app-bkp-plan-01 in predictx-postgrescluster with a target us-west1 and Backup plan g-db-protected-app-bkp-plan-01
 ------BEGIN MANUAL BACKUP------
-Create in progress for backup bkp-g-db-protected-app-bkp-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501777332-631b4a41a6808-9dbeb0ed-6674d820].
+Create in progress for backup bkp-g-db-protected-app-bkp-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743494893258-631b309c7c875-1627ee56-0e5621aa].
 Creating backup bkp-g-db-protected-app-bkp-plan-01...done.
-Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: CREATING.
 Waiting for backup to complete... Backup state: IN_PROGRESS.
 Waiting for backup to complete... Backup state: IN_PROGRESS.
 Waiting for backup to complete... Backup state: IN_PROGRESS.
@@ -1047,26 +1048,28 @@ Backup completed. Backup state: SUCCEEDED
 ------END MANUAL BACKUP------
 --------------- BEGIN CREATING RESTORE PLAN ---------------
 Create request issued for: [g-db-protected-app-rest-plan-01]
-Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501892358-631b4aaf592e1-343c529f-8aec06d5] to complete...done.
+Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743495009645-631b310b7b200-c2abbf38-7e789096] to complete...done.
 Created restore plan [g-db-protected-app-rest-plan-01].
 --------------- END CREATING RESTORE PLAN ---------------
 --------------- BEGIN EXECUTING RESTORE FOR bkp-g-db-protected-app-bkp-plan-01:, RESTORE TARGET = cluster-db2, FAILED SOURCE was cluster-db1 ---------------
-Create in progress for restore rest-g-db-protected-app-rest-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501896936-631b4ab3b6d7e-54ff1e9d-51cc2c34].
+Create in progress for restore rest-g-db-protected-app-rest-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743495014195-631b310fd20e5-7bd6718e-567ec868].
 Creating restore rest-g-db-protected-app-rest-plan-01...done.
 Waiting for restore to complete... Restore state: CREATING.
-Waiting for restore to complete... Restore state: CREATING.
-Waiting for restore to complete... Restore state: CREATING.
-Waiting for restore to complete... Restore state: CREATING.
-Waiting for restore to complete... Restore state: CREATING.
-Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: IN_PROGRESS.
 Waiting for restore to complete... Restore state: VALIDATING.
 Waiting for restore to complete... Restore state: VALIDATING.
 Waiting for restore to complete... Restore state: VALIDATING.
 Waiting for restore to complete... Restore state: VALIDATING.
 Waiting for restore to complete... Restore state: VALIDATING.
 Waiting for restore to complete... Restore state: VALIDATING.
-Restore completed. Restore state: FAILED
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Restore completed. Restore state: SUCCEEDED
 --------------- END EXECUTING RESTORE FOR bkp-g-db-protected-app-bkp-plan-01:, RESTORE TARGET = cluster-db2, FAILED SOURCE was cluster-db1 ---------------
+
 Unit tests complete...
 Waiting 30 seconds before re-polling.
 INFO: The Source cluster was cluster-db1 which has been restored onto the Target Cluster cluster-db2 using g-db-protected-app-bkp-plan-01 and g-db-protected-app-rest-plan-01. The Old region was us-central1 and Disaster caused  need to migrate to the cluster-db2 IN us-west1. cluster-db2 now has full restored data that the failed cluster-db1 had..
@@ -1094,7 +1097,7 @@ gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --
 ```
 
 # Cluster-DB2 ($TARGET_CLUSTER) Checklist 
-fter Migration from Cluster-DB1 ($SOURCE_CLUSTER) to the new Cluster-DB2 target. We need to switch our environment like above, and then confirm the database data is what it should be.
+After Migration from Cluster-DB1 ($SOURCE_CLUSTER) to the new Cluster-DB2 target. We need to switch our environment like above, and then confirm the database data is what it should be.
 
 ```
 # launch pgclient pod on cluster-db2 
@@ -1107,9 +1110,9 @@ psql: error: connection to server at "postgresql-postgresql-ha-pgpool" (192.168.
         Is the server running on that host and accepting TCP/IP connections?
 ```
 
-oops, something got messed up, looks like the helm configuration. So, lets check the state of helm in cluster-db2. It looks like it has not got its values.yaml so the pgclient pod is running blind. Or maybe the stateful cluster hasn't reached it's ready state.
+When testing the backup a second time, some unschedulable pods were encountered effectively preventing GKE backup running, looks like its not just related to helm configuration. But, lets check the state of helm in cluster-db2. It looks like it has not got its values.yaml so the pgclient pod is running blind. Or maybe the stateful cluster hasn't reached it's ready state.
 
-```
+```bash
 [root@localhost gke-stateful-postgres]# kubectl get pods -n postgresql
 NAME                                              READY   STATUS             RESTARTS        AGE
 pg-client                                         1/1     Running            0               90m
@@ -1128,7 +1131,7 @@ We need to find out what is wrong with pgpool for the connection issue to happen
 ```
 Output looks like, and reveals a lot to us about the conditions going on;
 
-```
+```bash
 gpool 10:21:40.67 INFO  ==> Validating settings in PGPOOL_* env vars...
 pgpool 10:21:40.75 INFO  ==> Initializing Pgpool-II...
 pgpool 10:21:40.76 INFO  ==> Generating pg_hba.conf file...
@@ -1287,7 +1290,7 @@ Our error is gone, and deploy succeeds. Still things look broke AF though :(
 
 The problem is
 
-```
+```bash
 kubectl logs postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z -n postgresql
 25-04-01 10:53:34.300: child pid 242: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
 2025-04-01 10:53:34.301: child pid 242: FATAL:  failed to create a backend 0 connection
