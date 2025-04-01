@@ -349,7 +349,6 @@ terraform apply -var project_id=$PROJECT_ID -var email_address=$EMAIL
 
 If your using critical alerts, important to test them. This can be done easily by reattaching to the host and generating large tuple sets
 ```bash
-[root@localhost terraform]# cd ../../../
 [root@localhost gke-stateful-postgres]# kubectl exec -it --namespace postgresql pg-client -- /bin/bash
 I have no name!@pg-client:/$ pgbench -i -h $HOST_PGPOOL -U postgres -s 200 postgres
 dropping old tables...
