@@ -1992,15 +1992,17 @@ Events:
   Warning  BackOff                 11s (x23 over 4m47s)  kubelet                                Back-off restarting failed container postgresql in pod postgresql-postgresql-ha-postgresql-1_default(56e370fd-eb9f-42e3-9cfb-47b5f3ec17a9)
 [root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]#
 ```
+Contininuing on we redeploy Helm
+```
+helm upgrade --install postgresql . \
+  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
+  --set postgresql.password="$(gcloud secrets versions access latest --secret=DB_PASSWORD | tr -d '\n')" \
+  --set postgresql.database="$(gcloud secrets versions access latest --secret=DB_NAME | tr -d '\n')" \
+  -n postgresql
+```
+Later on we will reconfigure the imageregistry to use docker.io bitnami repo which is kept up more up to date. 
 
-#Current State of The Build and next steps needed
-Come to think of it, I think this issue started when I changed helm password automation, it seems likely, beyond kube-dns and gke repo permission issues, and other strangeness, that the issue is now with the non optional password not being set in the backend, causing issues with the sync and triggering a pod restart/replace. It is probably much simpler to get the automation in working order, we were stuck in the mud for a day without kube-dns.  I think the non optional password wasnt set and a variable was sent empty, that explains why the automation is failing. I increased the cluster size, and now there isnt as many backoff issues with the ha group, and I think that the quota,limit issues were shielding the problem with helm automation.
-
-todo fix helm password automation (last step of helm autoinstall).
-
-#This error from helm installer may be related to failing build
-#==== HELM CHART ENDS HERE =====
-#
+# Output looks like
 ```
 W0331 04:53:51.449662 1396621 warnings.go:70] spec.template.spec.topologySpreadConstraints[0].labelSelector: a null labelSelector results in matching no pod
 NAME: postgresql
@@ -2012,7 +2014,7 @@ TEST SUITE: None
 ==== BEGIN BUILD CREDENTIALS INFO====
 ```
 
-#Namespace also missing labels/tags
+# Namespace also missing labels/tags
 ```[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get all -n $NAMESPACE
 No resources found in postgresql namespace.
 ```
