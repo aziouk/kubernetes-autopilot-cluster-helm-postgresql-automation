@@ -1327,8 +1327,16 @@ Events:
   Normal   NotTriggerScaleUp  2s (x132 over 35m)  cluster-autoscaler                     pod didn't trigger scale-up: 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) didn't match Pod's node affinity/selector, 1 node(s) didn't find available persistent volumes to bind
 ```
 
-It looks like it's just resources issues, but I think we need to start the backup restore again, to be sure something wasn't missed. It worked the first time, so lets check.
+It looks like it's just resources issues, but I think we need to start the backup restore again, to be sure something wasn't missed. It worked the first time, so lets check. OK, this is not fun at all, lets for the 3rd time restart the backup from the beginning and go step by step and troubleshoot each and every issue we experience.
 
+## Re Run the Backup and Restore Script
+```
+./disaster-recovery.sh
+```
+
+The script will again, take a backup of the state of the cluster in cluster-db1 and will then apply it to cluster-db2, where, we will pickup the pieces.
+
+After all this, its google PDB causing the thing to fall apart, one can't help but be frustrated by google cloud in this way. I have definitely resolved this, the instructions are correct. Once google lets me scale again, probably a few hours i'll update the extra info checking the database value was verified at the db2 cluster.
 
 ## Verify statefulset 
 # Here lays GKE Cloud Cluster Helm f00
