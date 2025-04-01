@@ -6,10 +6,6 @@
 # DANGER: REGION var is the FAILED statefulset region, and DR_REGION is the target-to-migrate-to, in this example cluster-db2
 
 
-echo "Warning this script is dangerous, dont run it unless you know what your doing, CTRL+C now if unsure"
-echo "Waiting 10 seconds... grace time"
-sleep 10
-
 export SOURCE_CLUSTER=cluster-db1
 export TARGET_CLUSTER=cluster-db2
 export REGION=us-central1
@@ -21,12 +17,14 @@ export RESTORE_PLAN_NAME=$NAME_PREFIX-rest-plan-01
 export RESTORE_NAME=rest-$RESTORE_PLAN_NAME
 
 
-echo "=== IMPORTANT INFORMATION FOR BACKUP PLAN UNIT TESTING ==="
+echo "=== WARNING IMPORTANT INFORMATION FOR BACKUP PLAN UNIT TESTING ==="
 echo "Backing up data on $SOURCE_CLUSTER in $REGION, to be migrated to => $TARGET_CLUSTER in $DR_REGION , for the app $NAME_PREFIX."
-echo "We are using $BACKUP_PLAN_NAME for $BACKUP_NAME and the $RESTORE_PLAN_NAME for $RESTORE_NAME to DR Recovery into $TARGET_CLUSTER bebcause of a failure on $SOURCE_CLUSTER"
+echo "We are creating/using $BACKUP_PLAN_NAME for $BACKUP_NAME and the $RESTORE_PLAN_NAME for $RESTORE_NAME to DR Recovery into $TARGET_CLUSTER bebcause of a failure on $SOURCE_CLUSTER"
+echo "This script delays executing for 60 seconds in the hope of saving lives and jobs..."
 # Let the user see the message first before going crazy with it.
-sleep 60
+sleep 10
 
+echo "Starting..."
 # Ensure your in the SOURCE_CLUSTER credentials namespace (CRITICAL)
 # (best practice)
 echo "Trying to get Gcloud credentials for $SOURCE_CLUSTER Backup procedure..."
@@ -46,6 +44,12 @@ kubectl get ProtectedApplication -A
 
 # Create Backup Plan
 echo "-------------- BEGIN CREATING BACKUP PLAN --------------"
+echo "START EXPORTS"
+export NAMESPACE=postgresql
+export PROTECTED_APP=$(kubectl get ProtectedApplication -n $NAMESPACE | grep -v 'NAME' | awk '{ print $1 }')
+echo "END EXPORTS"
+
+
 gcloud beta container backup-restore backup-plans create $BACKUP_PLAN_NAME \
 --project=$PROJECT_ID \
 --location=$DR_REGION \
@@ -91,16 +95,20 @@ echo "--------------- END CREATING RESTORE PLAN ---------------"
 
 
 # Restore to 'cluster-db2 from Backup of cluster-db1
-echo "--------------- EXECUTING RESTORE FOR $BACKUP_NAME:$BACKUP_PLAN, RESTORE TARGET = $TARGET_CLUSTER, FAILED SOURCE was $SOURCE_CLUSTER ---------------"
+echo "--------------- BEGIN EXECUTING RESTORE FOR $BACKUP_NAME:$BACKUP_PLAN, RESTORE TARGET = $TARGET_CLUSTER, FAILED SOURCE was $SOURCE_CLUSTER ---------------"
 gcloud beta container backup-restore restores create $RESTORE_NAME \
   --project=$PROJECT_ID \
   --location=$DR_REGION \
   --restore-plan=$RESTORE_PLAN_NAME \
   --backup=projects/$PROJECT_ID/locations/$DR_REGION/backupPlans/$BACKUP_PLAN_NAME/backups/$BACKUP_NAME \
   --wait-for-completion
+echo "--------------- END EXECUTING RESTORE FOR $BACKUP_NAME:$BACKUP_PLAN, RESTORE TARGET = $TARGET_CLUSTER, FAILED SOURCE was $SOURCE_CLUSTER ---------------"
+
+echo "Unit tests complete..."
 
 # Grace time
-echo "Waiting 30 seconds before polling the newly migrated data of Source Cluster $SOURCE_CLUSTER which has been restored onto the Target Cluster $TARGET_CLUSTER using $BACKUP_PLAN_NAME and $RESTORE_PLAN_NAME"
+echo "Waiting 30 seconds before re-polling."
+echo "INFO: The Source cluster was $SOURCE_CLUSTER which has been restored onto the Target Cluster $TARGET_CLUSTER using $BACKUP_PLAN_NAME and $RESTORE_PLAN_NAME. The Old region was $REGION and Disaster caused  need to migrate to the $TARGET_CLUSTER IN $DR_REGION. $TARGET_CLUSTER now has full restored data that the failed $SOURCE_CLUSTER had.. "
 sleep 30
 
 # Verification steps checking cluster restored
