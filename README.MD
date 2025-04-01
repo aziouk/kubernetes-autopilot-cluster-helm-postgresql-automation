@@ -1308,7 +1308,6 @@ kubectl logs postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z -n postgresql
 This is happening on main pgpool co-ordinator. We need to check the logs for the 0th node too.
 ```
 kubectl describe pod postgresql-postgresql-ha-postgresql-0 -n postgresql
-```
 
 Events:
   Type     Reason             Age                 From                                   Message
@@ -1369,7 +1368,6 @@ We can see pgpool is in crashloopbackoff, normally a state from improper helm co
 
 ## Implement Helm on the Cluster-db2
 ```
-
 [root@localhost gke-stateful-postgres]# helm upgrade --install postgresql bitnami/postgresql -n $NAMESPACE --values recovered-namespace-values.yaml
 Release "postgresql" does not exist. Installing it now.
 NAME: postgresql
