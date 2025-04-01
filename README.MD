@@ -1390,6 +1390,10 @@ The issue lies with the last two PDBs (for postgresql-postgresql-ha-pgpool and p
 
  Issue is with the node as toBeDeleted/unschedulable , specifically gke-cluster-db2-nap-e2-standard-2-1lq-38ffa5d9-h5m4. Annoyingly it is deleted before I can look properly which made this really hard on me to fix.
 
+```
+ZONE_RESOURCE_POOL_EXHAUSTED 	gke-cluster-db2-pool-db-2fe134fa-v637 	us-west1-b 	Creating 	Apr 1, 2025, 4:42:47 pm UTC+01:00 	Instance 'gke-cluster-db2-pool-db-2fe134fa-v637' creation failed: The zone 'projects/predictx-postgrescluster/zones/us-west1-b' does not have enough resources available to fulfill the request. Try a different zone, or try again later. 
+```
+See above - Turns out, the problem with GKE backup is that there is not eough resources on west-1 anymore. I will have to change the region for cluster-db2 and re-apply the build.
 
 # Here lays GKE Cloud Cluster Helm f00
 
