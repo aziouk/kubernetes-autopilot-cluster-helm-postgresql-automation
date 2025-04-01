@@ -59,7 +59,8 @@ echo -n "px-database" | gcloud secrets versions add DB_NAME --data-file=-
 # Recommend to sanitize the plaintext password entry from BASH History something like
 history -d $(history 4 | awk '{print $1}') && history -w
 
-```bash
+```
+
 Using setenv for credential automation is possible but not recommended due to plaintext storage. A better approach is setting random variables at runtime. If deploy scripts run on a self-destructing bastion, then it might be acceptable but is not best practice. Encrypting credentials within setenv could streamline special cases and increase portability but is less reliable and more maint than using well maintained secret stores like GSM. Managing this via a bucket and helper script is also discouraged.
 
 A preferred approach is generating random credentials at runtime, storing them in GSM, and referencing them in automation. Helm can retrieve these secrets during upgrades, avoiding plaintext exposure and manual initialization of password stores. This method seems most suitable for both production and development and is shown in the helm_deploy_postgresql.sh script. Theoretically credential initialisation should be compartementalized from the build scripts altogether. Build scripts should reference the stores expecting credentials to be pre defined already by a seperate isolated microservice, rather than risk potentially insecurely generating them at build time, as there is a period where credentials are not within GSM, for sensitive systems with pci compliance and public exposure on their network, this is problematic. Even if often undereported.
