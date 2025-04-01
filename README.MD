@@ -1196,6 +1196,15 @@ The script will again, take a backup of the state of the cluster in cluster-db1 
 
 After all this, its google PDB causing the thing to fall apart, one can't help but be frustrated by google cloud in this way. I have definitely resolved this, the instructions are correct. Once google lets me scale again, probably a few hours i'll update the extra info checking the database value was verified at the db2 cluster.
 
+
+Unfortunately babckups are still failing, either because of misconfiguration or incompatibility. It did work first time, so curious why it isn't now. The answer is in there somewhere.
+
+```
+failed to prepare backup for ProtectedApplication "postgresql/postgresql-ha": PVC data-postgresql-ha-postgresql-0 is not a volume backup candidate: PVC is not bound to a PV 
+```
+
+I'm sure someone more expert in google cloud understands how to fix it. So I wont waste too much more time now.
+
 # A Grim Situation in postgres GXE HA - guidebook
 The trim situation has been we have multiple problems obfuscating eachother. 
 
@@ -1407,13 +1416,25 @@ See above - Turns out, the problem with GKE backup is that there is not eough re
  psql -h $HOST_PGPOOL -U postgres
 # create the database marker to confirm migration of db state
 CREATE DATABASE "SUCCESFUL_MIGRATION_FROM_DB1_MARK";
+
+postgres-# \list
+ SUCCESFUL_MIGRATION_FROM_DB1_MARK | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            |
+ postgres                          | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            |
+ repmgr                            | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            |
+ template0                         | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+                                   |          |          |             |             |            |                 | postgres=CTc/postgres
+ template1                         | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | =c/postgres          +
+                                   |          |          |             |             |            |                 | postgres=CTc/postgres
+
 ```
+
 
 I know its a simple test for now, but this dbdata should be seen when the cluster-db2 migrates in the data from cluster-db1 using gke backup. 
 
 We will now make one last ditch attempt to get the whole orchestration working together;
 
 ```
+./disaster_recover.sh
 
 ```
 
