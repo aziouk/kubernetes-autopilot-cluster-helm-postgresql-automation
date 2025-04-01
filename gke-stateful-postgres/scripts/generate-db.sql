@@ -1,5 +1,5 @@
 CREATE DATABASE gke_test_zonal;
-\c gke_test_zonal;
+
 
 CREATE TABLE tb01 (
   id SERIAL UNIQUE NOT NULL,
