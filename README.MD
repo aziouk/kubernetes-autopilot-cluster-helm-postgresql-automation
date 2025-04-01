@@ -849,11 +849,27 @@ If upgrades cause data corruption or volume mounting issues, scale down the stat
 ```
 #scale down replicas
 kubectl scale statefulset postgresql-postgresql-ha-postgresql --replicas=0 -n postgresql
+
+// Perform Backup Restore (not covered here) before running the following;
+
 #scale up replicas after backup restored
 kubectl scale statefulset postgresql-postgresql-ha-postgresql --replicas=3 -n postgresql
 ```
-
 Although backup restoration isn't discussed in this section, you should find it below somewhere if it has been written yet.
+
+## Reverting Statefulset changes using a previous yaml
+
+```
+kubectl apply -f previous_statefulset.yaml
+```
+
+## Checking Logs and Debugging
+If the new image fails, you should check logs before rolling back;
+```
+kubectl logs -l app.kubernetes.io/name=postgresql-ha -n postgresql
+kubectl get pods -n postgresql
+kubectl describe pod <pod-name> -n postgresql```
+
 
 
 
