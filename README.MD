@@ -975,7 +975,7 @@ data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c9e71a99ccb99a4c   8Gi
 
 ```
 
-##Validate Restored Data is Valid (DANGER, WARNING DO NOT SKIP UNDER ANY CIRCUMSTANCES.)
+## Validate Restored Data is Valid (DANGER, WARNING DO NOT SKIP.)
 Do not under any circumstances skip this, doing so could leave you without a 'working' backup. Even if backup succeeds, you may not have the right data, for example if the backups are taken for the $TARGET DR_REGION instead of the $SOURCE REGION.
 
 ```bash
