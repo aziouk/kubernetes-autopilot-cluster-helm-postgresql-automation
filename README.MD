@@ -773,7 +773,7 @@ If you dont remember the image, run:
 kubectl describe statefulset -n postgresql postgresql-postgresql-ha-postgresql | grep Image
 ```
 
-##Trigger Rolling Update via Gcloud API
+## Trigger Rolling Update via Gcloud API
 Here we are using $NEW_IMAGE define and stateful set labelname, can use $stateful_cluster_label or similar in automation etc.
 
 ```
