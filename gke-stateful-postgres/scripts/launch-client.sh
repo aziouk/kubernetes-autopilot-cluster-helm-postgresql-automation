@@ -9,8 +9,8 @@ NAMESPACE=postgresql
 
 launch_pod () {
   echo "Launching Pod $POD_CLIENT in the namespace $NAMESPACE ..."
-  export POSTGRES_PASSWORD=$(kubectl get secret --namespace $NAMESPACE postgresql-postgresql-ha-postgresql -o jsonpath="{.data.password}" | base64 -d)
-  export REPMGR_PASSWORD=$(kubectl get secret --namespace $NAMESPACE postgresql-postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 -d)
+  export POSTGRES_PASSWORD=$(kubectl get secret --namespace $NAMESPACE postgresql-ha-postgresql -o jsonpath="{.data.password}" | base64 -d)
+  export REPMGR_PASSWORD=$(kubectl get secret --namespace $NAMESPACE postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 -d)
   export IMAGE="us-docker.pkg.dev/$PROJECT_ID/main/bitnami/postgresql-repmgr:15.1.0-debian-11-r0"
   
   kubectl run $POD_CLIENT --restart='Never' --namespace $NAMESPACE --image $IMAGE --annotations="cluster-autoscaler.kubernetes.io/safe-to-evict=true"\

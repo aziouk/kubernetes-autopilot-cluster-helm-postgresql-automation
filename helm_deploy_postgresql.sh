@@ -91,11 +91,23 @@ echo "==== HELM CHART ENDS HERE ====="
 #  --set auth.database=$(gcloud secrets versions access latest --secret=DB_NAME)
 #echo "==== HELM CHART NAMESPACE INSTALL ENDS HERE ====="
 # Trim output of anything harmful that might compromise helm during --set usage.
-helm upgrade --install postgresql . \
-  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \
-  --set postgresql.password="$(gcloud secrets versions access latest --secret=DB_PASSWORD | tr -d '\n')" \
-  --set postgresql.database="$(gcloud secrets versions access latest --secret=DB_NAME | tr -d '\n')" \
+
+# need this export of data is blank in helm template
+export DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
+#export DB_USER=$(gcloud secrets versions access latest --secret=DB_USER) #unused
+export DB_NAME=$(gcloud secrets versions access latest --secret=DB_NAME)
+
+echo "INFO/DEBUG: DB_PASSWORD is set to $DB_PASSWORD"
+echo "INFO/DEBUG: DB_NAME is set to $DB_NAME"
+
+#changed imageRegistry=="us-docker.pkg.dev/$PROJECT_ID/main" - image seemed more unreliable than the bitnami one.
+# this wasnt working so adding a debug
+echo "INFO/DEBUG: CURRENTLY PROJECT_ID is set to $PROJECT_ID"
+ helm upgrade --install postgresql-ha bitnami/postgresql-ha \
+  --set postgresql.password="$DB_PASSWORD" \
+  --set postgresql.database="$DB_NAME" \
   -n postgresql
+# --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \ these images are insecure
 
 
 # INSECURE PROCESS REMOVE FROM PROD BUILDS DANGER DANGER

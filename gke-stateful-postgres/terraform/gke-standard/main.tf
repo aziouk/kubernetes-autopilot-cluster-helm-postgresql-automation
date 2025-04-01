@@ -59,7 +59,7 @@ module "gke-db1" {
     "autoscaling_profile": "OPTIMIZE_UTILIZATION",
     "enabled" : true,
     "gpu_resources" : [],
-    "min_cpu_cores" : 10,
+    "min_cpu_cores" : 1,
     "min_memory_gb" : 25,
     "max_cpu_cores" : 80,
     "max_memory_gb" : 80,
@@ -141,10 +141,10 @@ module "gke-db2" {
     "autoscaling_profile": "OPTIMIZE_UTILIZATION",
     "enabled" : true,
     "gpu_resources" : [],
-    "min_cpu_cores" : 10,
-    "min_memory_gb" : 25,
-    "max_cpu_cores" : 80,
-    "max_memory_gb" : 80,
+    "min_cpu_cores" : 1,
+    "min_memory_gb" : 4,
+    "max_cpu_cores" : 50,
+    "max_memory_gb" : 50,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
@@ -166,7 +166,7 @@ module "gke-db2" {
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-2"
-      node_locations  = "us-west1-b"
+      node_locations  = "us-west1-a"
       auto_repair     = true
     },
   ]
