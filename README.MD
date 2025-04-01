@@ -868,12 +868,138 @@ If the new image fails, you should check logs before rolling back;
 ```
 kubectl logs -l app.kubernetes.io/name=postgresql-ha -n postgresql
 kubectl get pods -n postgresql
-kubectl describe pod <pod-name> -n postgresql```
+kubectl describe pod <pod-name> -n postgresql
+```
+
+# Disaster Recovery and Migration
+
+## Step 1: Preparing for DR Backup
+In the event of a disaster on the production cluster-db1 postgres gke statefulset, the procedure of disaster recovery and backup plans are important.
+
+To prepare to backup and restore your PostgreSQL workload, follow these steps:
+Important information is. Checking the source and target are correct, that the REGION is defined correctly i.e. us-central1 not us-central1a if its a regional, not zonal cluster. Understanding that the REGION is the SOURCE and that the DR_REGION is the target to migrate to. <mark>Please, don't get this wrong. It would be bad.</mark>
+```
+export SOURCE_CLUSTER=cluster-db1
+export TARGET_CLUSTER=cluster-db2
+export REGION=us-central1
+export DR_REGION=us-west1
+export NAME_PREFIX=g-db-protected-app
+export BACKUP_PLAN_NAME=$NAME_PREFIX-bkp-plan-01
+export BACKUP_NAME=bkp-$BACKUP_PLAN_NAME
+export RESTORE_PLAN_NAME=$NAME_PREFIX-rest-plan-01
+export RESTORE_NAME=rest-$RESTORE_PLAN_NAME
+```
+
+## Step 2: Verifying Backup for GKE is enabled on the cluster
+```
+gcloud container clusters describe $SOURCE_CLUSTER \
+    --project=$PROJECT_ID  \
+    --region=$REGION \
+    --format='value(addonsConfig.gkeBackupAgentConfig)'
+```
+If Backup for GKE is enabled, the output of the command shows enabled=True.
+
+## Step 3: Set Up the Backup Plan and Test the Restore Works
+Always set up the backup plan and <mark> TEST THE RESTORE WORKS </mark> afterwards. 
+
+```
+#Verify status of protectapplication on the cluster-db1 source 
+
+kubectl get ProtectedApplication -A
+NAMESPACE    NAME            READY TO BACKUP
+postgresql   postgresql-ha   true
+
+#Create Namespace Exports for Backup Plan Initialization
+export NAMESPACE=postgresql
+export PROTECTED_APP=$(kubectl get ProtectedApplication -n $NAMESPACE | grep -v 'NAME' | awk '{ print $1 }')
+
+#Define the Backup Setup and Initialize the Backups policy
+
+gcloud beta container backup-restore backup-plans create $BACKUP_PLAN_NAME \
+--project=$PROJECT_ID \
+--location=$DR_REGION \
+--cluster=projects/$PROJECT_ID/locations/$REGION/clusters/$SOURCE_CLUSTER \
+--selected-applications=$NAMESPACE/$PROTECTED_APP \
+--include-secrets \
+--include-volume-data \
+--cron-schedule="0 3 * * *" \
+--backup-retain-days=7 \
+--backup-delete-lock-days=0
+
+#Manually run a backup
+gcloud beta container backup-restore backups create $BACKUP_NAME \
+--project=$PROJECT_ID \
+--location=$DR_REGION \
+--backup-plan=$BACKUP_PLAN_NAME \
+--wait-for-completion
+
+# Setup Restore Plan 
+gcloud beta container backup-restore restore-plans create $RESTORE_PLAN_NAME \
+  --project=$PROJECT_ID \
+  --location=$DR_REGION \
+  --backup-plan=projects/$PROJECT_ID/locations/$DR_REGION/backupPlans/$BACKUP_PLAN_NAME \
+  --cluster=projects/$PROJECT_ID/locations/$DR_REGION/clusters/$TARGET_CLUSTER \
+  --cluster-resource-conflict-policy=use-existing-version \
+  --namespaced-resource-restore-mode=delete-and-restore \
+  --volume-data-restore-policy=restore-volume-data-from-backup \
+  --selected-applications=$NAMESPACE/$PROTECTED_APP \
+  --cluster-resource-scope-selected-group-kinds="storage.k8s.io/StorageClass","scheduling.k8s.io/PriorityClass"
+
+# Restore to $DR_REGION (db-cluster2) remember its very important to understand dr-region is the TARGET to deploy 
+# and not the dr-region that failed. always $REGION var should be the failing cluster and DR_REGION should be the target of migration
+
+gcloud beta container backup-restore restores create $RESTORE_NAME \
+  --project=$PROJECT_ID \
+  --location=$DR_REGION \
+  --restore-plan=$RESTORE_PLAN_NAME \
+  --backup=projects/$PROJECT_ID/locations/$DR_REGION/backupPlans/$BACKUP_PLAN_NAME/backups/$BACKUP_NAME \
+  --wait-for-completion
+```
+
+## Verify that the Cluster is restored and has all the expected pods
+First we need to configure kubectl line to access the backup cluster cluster-db2
+```
+# verify your target-to-migrate-to is the active authorised object/container 
+gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --project $PROJECT_ID
+kubectl get all -n $NAMESPACE
+kubectl get pods -n $NAMESPACE
+
+# Verify the PersistentVolumes and StorageClass. During the restore process, Backup for GKE creates a Proxy Class in the target workload to replace the StorageClass provisioned in the source workload (gce-pd-gkebackup-dn in the example output).
+kubectl get pvc -n $NAMESPACE
+#output looks like
+NAME                                         STATUS   VOLUME                 CAPACITY   ACCESS MODES   STORAGECLASS          AGE
+data-postgresql-postgresql-ha-postgresql-0   Bound    pvc-be91c361e9303f96   8Gi        RWO            gce-pd-gkebackup-dn   10m
+data-postgresql-postgresql-ha-postgresql-1   Bound    pvc-6523044f8ce927d3   8Gi        RWO            gce-pd-gkebackup-dn   10m
+data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c9e71a99ccb99a4c   8Gi        RWO            gce-pd-gkebackup-dn   10m
+
+```
+
+##Validate Restored Data is Valid (DANGER, WARNING DO NOT SKIP UNDER ANY CIRCUMSTANCES.)
+Do not under any circumstances skip this, doing so could leave you without a 'working' backup. Even if backup succeeds, you may not have the right data, for example if the backups are taken for the $TARGET DR_REGION instead of the $SOURCE REGION.
+
+```
+./scripts/launch-client.sh
+kubectl exec -it pg-client -n postgresql -- /bin/bash
+
+psql -h $HOST_PGPOOL -U postgres -a -q -f /tmp/scripts/count-rows.sql
+select COUNT(*) from tb01;
+```
+
+Check the data whatever it may be is still there.  If it is,
+
+We can now delete this test project for a dry-run of the automation;
+```
+#commented for safety, destructive command
+#gcloud projects delete $PROJECT_ID
+```
 
 
 
 
 
+
+
+## Verify statefulset 
 # Here lays GKE Cloud Cluster Helm f00
 
 ## Documenting a Strange GKE Kube-DNS Build Issue
