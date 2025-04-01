@@ -1091,14 +1091,243 @@ export RESTORE_NAME=rest-$RESTORE_PLAN_NAME
 gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --project $PROJECT_ID                                                                
 # when you later want to switch back to cluster-db1 you can use
 # gcloud container clusters get-credentials $SOURCE_CLUSTER --region $REGION --project $PROJECT_ID
-
 ```
 
+# Cluster-DB2 ($TARGET_CLUSTER) Checklist 
+fter Migration from Cluster-DB1 ($SOURCE_CLUSTER) to the new Cluster-DB2 target. We need to switch our environment like above, and then confirm the database data is what it should be.
 
+```
+# launch pgclient pod on cluster-db2 
+[root@localhost gke-stateful-postgres]# ./scripts/launch-client.sh
+# connect via kubectl in cluster-d2 env
+kubectl exec -it pg-client -n postgresql -- /bin/bash
+# Connect to test connection to pool
+I have no name!@pg-client:/$ psql -h $HOST_PGPOOL -U postgres -a -q
+psql: error: connection to server at "postgresql-postgresql-ha-pgpool" (192.168.213.218), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+```
 
+oops, something got messed up, looks like the helm configuration. So, lets check the state of helm in cluster-db2. It looks like it has not got its values.yaml so the pgclient pod is running blind. Or maybe the stateful cluster hasn't reached it's ready state.
 
+```
+[root@localhost gke-stateful-postgres]# kubectl get pods -n postgresql
+NAME                                              READY   STATUS             RESTARTS        AGE
+pg-client                                         1/1     Running            0               90m
+postgresql-0                                      1/1     Running            0               74m
+postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z   0/1     CrashLoopBackOff   7 (4m14s ago)   15m
+postgresql-postgresql-ha-postgresql-0             0/2     Pending            0               15m
+postgresql-postgresql-ha-postgresql-1             0/2     Pending            0               15m
+postgresql-postgresql-ha-postgresql-2             0/2     Pending            0               15m
+```
+So, something looks roken here, and pgpool has crashloopbackoff. I never saw that before, and had the second db2 working, but, I suspect its related to the issues I found before.
 
+We need to find out what is wrong with pgpool for the connection issue to happen. Likely, helm doesn't know about it.
 
+```
+[root@localhost gke-stateful-postgres]# kubectl logs postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z -n postgresql
+```
+Output looks like, and reveals a lot to us about the conditions going on;
+
+```
+gpool 10:21:40.67 INFO  ==> Validating settings in PGPOOL_* env vars...
+pgpool 10:21:40.75 INFO  ==> Initializing Pgpool-II...
+pgpool 10:21:40.76 INFO  ==> Generating pg_hba.conf file...
+pgpool 10:21:40.76 INFO  ==> Generating pgpool.conf file...
+pgpool 10:21:41.28 INFO  ==> Generating password file for local authentication...
+pgpool 10:21:41.35 INFO  ==> Generating password file for pgpool admin user...
+pgpool 10:21:41.36 INFO  ==> ** Pgpool-II setup finished! **
+
+pgpool 10:21:41.45 INFO  ==> ** Starting Pgpool-II **
+2025-04-01 10:21:41.475: main pid 1: LOG:  Backend status file /opt/bitnami/pgpool/logs/pgpool_status does not exist
+2025-04-01 10:21:41.475: main pid 1: LOG:  health_check_stats_shared_memory_size: requested size: 12288
+2025-04-01 10:21:41.475: main pid 1: LOG:  memory cache initialized
+2025-04-01 10:21:41.475: main pid 1: DETAIL:  memcache blocks :64
+2025-04-01 10:21:41.475: main pid 1: LOG:  allocating (144190784) bytes of shared memory segment
+2025-04-01 10:21:41.475: main pid 1: LOG:  allocating shared memory segment of size: 144190784
+2025-04-01 10:21:41.775: main pid 1: LOG:  health_check_stats_shared_memory_size: requested size: 12288
+2025-04-01 10:21:41.775: main pid 1: LOG:  health_check_stats_shared_memory_size: requested size: 12288
+2025-04-01 10:21:41.775: main pid 1: LOG:  memory cache initialized
+2025-04-01 10:21:41.775: main pid 1: DETAIL:  memcache blocks :64
+2025-04-01 10:21:41.777: main pid 1: LOG:  pool_discard_oid_maps: discarded memqcache oid maps
+2025-04-01 10:21:41.795: main pid 1: LOG:  create socket files[0]: /opt/bitnami/pgpool/tmp/.s.PGSQL.5432
+2025-04-01 10:21:41.844: main pid 1: LOG:  listen address[0]: *
+2025-04-01 10:21:41.844: main pid 1: LOG:  Setting up socket for 0.0.0.0:5432
+2025-04-01 10:21:41.844: main pid 1: LOG:  Setting up socket for :::5432
+2025-04-01 10:21:41.871: main pid 1: LOG:  find_primary_node_repeatedly: waiting for finding a primary node
+2025-04-01 10:21:41.976: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:21:41.976: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 0
+2025-04-01 10:21:42.038: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+```
+
+We need to make sure pgpool gets the right info to co-ordinate the cluster db. Our backup / recovery script will have to take this process into consideration aswell.
+
+Lets switch back to the db1 environment and retrieve the files. erghhhh. I see my mistake, I was patching something and temporarily changed $REGION to us-west and forgot to change it back. I will fix it now.
+```
+export REGION=us-central1
+```
+
+Now the region is set, hopefully I will be able to switch environment correctly to db1 and export the values i need from helm. Lets get those values we needed;
+```
+helm get values postgresql -n $NAMESPACE -o yaml > recovered-namespace-values2.yaml
+```
+We won't use them yet, lets try and redeploy helm on cluster-db2 first;
+
+```
+[root@localhost gke-stateful-postgres]# helm upgrade --install postgresql bitnami/postgresql -n $NAMESPACE
+Release "postgresql" has been upgraded. Happy Helming!
+NAME: postgresql
+LAST DEPLOYED: Tue Apr  1 11:37:10 2025
+NAMESPACE: postgresql
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+CHART NAME: postgresql
+CHART VERSION: 16.6.0
+APP VERSION: 17.4.0
+```
+Wow I got to say after fixing this first time, and everything working well I am sad about this.
+```
+[root@localhost gke-stateful-postgres]#  kubectl get pods -n postgresql
+NAME                                              READY   STATUS             RESTARTS       AGE
+pg-client                                         1/1     Running            0              109m
+postgresql-0                                      1/1     Running            0              93m
+postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z   0/1     CrashLoopBackOff   13 (23s ago)   33m
+postgresql-postgresql-ha-postgresql-0             0/2     Pending            0              33m
+postgresql-postgresql-ha-postgresql-1             0/2     Pending            0              33m
+postgresql-postgresql-ha-postgresql-2             0/2     Pending            0              33m
+```
+
+We will uninstall helm then reinstall it.
+```
+[root@localhost gke-stateful-postgres]# helm uninstall postgresql -n $NAMESPACE
+```
+
+We will check the pods again in cluster-db2
+```
+[root@localhost gke-stateful-postgres]#  kubectl get pods -n postgresql
+NAME                                              READY   STATUS              RESTARTS         AGE
+pg-client                                         1/1     Running             0                113m
+postgresql-0                                      0/1     ContainerCreating   0                11s
+postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z   0/1     CrashLoopBackOff    13 (4m16s ago)   37m
+postgresql-postgresql-ha-postgresql-0             0/2     Pending             0                37m
+postgresql-postgresql-ha-postgresql-1             0/2     Pending             0                37m
+postgresql-postgresql-ha-postgresql-2             0/2     Pending             0                37m
+```
+Still borked. So we will delete the crahsed pgpool node
+```
+
+[root@localhost gke-stateful-postgres]#  kubectl get pods -n postgresql
+NAME                                              READY   STATUS    RESTARTS         AGE
+pg-client                                         1/1     Running   0                115m
+postgresql-0                                      1/1     Running   0                113s
+postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z   0/1     Running   14 (5m58s ago)   39m
+postgresql-postgresql-ha-postgresql-0             0/2     Pending   0                39m
+postgresql-postgresql-ha-postgresql-1             0/2     Pending   0                39m
+postgresql-postgresql-ha-postgresql-2             0/2     Pending   0                39m
+```
+That fixed it, it seems there is also scaling problems going on , making this even the more nightmarish. The main thing to consider is the values.yaml helm receives. So lets take the exported values and import them into the cluster-db2.
+
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm upgrade --install postgresql bitnami/postgresql -n $NAMESPACE --values recovered-namespace-values2.yaml
+```
+
+OK, now I have replicated the original error I had with this before fixing it which was:
+
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# helm upgrade --install postgresql bitnami/postgresql -n $NAMESPACE --values recovered-namespace-values2.yaml
+Error: UPGRADE FAILED: execution error at (postgresql/templates/NOTES.txt:121:4):
+
+⚠ ERROR: Original containers have been substituted for unrecognized ones. Deploying this chart with non-standard containers is likely to cause degraded security and performance, broken chart features, and missing environment variables.
+
+Unrecognized images:
+  - us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgresql:17.4.0-debian-12-r11
+  - us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/os-shell:12-debian-12-r40
+  - us-docker.pkg.dev/predictx-postgrescluster/main/bitnami/postgres-exporter:0.17.1-debian-12-r2
+
+If you are sure you want to proceed with non-standard containers, you can skip container image verification by setting the global parameter 'global.security.allowInsecureImages' to true.
+Further information can be obtained at https://github.com/bitnami/charts/issues/30850
+```
+
+We need to update the chart configuration in values.yaml we provide it like so;
+```
+global:
+  imageRegistry: us-docker.pkg.dev/predictx-postgrescluster/main
+postgresql:
+  database: predictx
+  password: redacted
+```
+Changing it to use the official bitnami repo rather than our private cluster. It actually has security implications using internal repo outdated, as much as using external repo uptodate.
+
+```
+postgresql:
+  database: predictx
+  password: redacted
+  image:
+    repository: bitnami/postgresql  # Bitnami's official repo
+```
+And we now can rerun the postgresql upgrade script;
+
+```
+[root@localhost gke-stateful-postgres]# helm upgrade --install postgresql bitnami/postgresql -n $NAMESPACE --values recovered-namespace-values.yaml
+Release "postgresql" has been upgraded. Happy Helming!
+NAME: postgresql
+LAST DEPLOYED: Tue Apr  1 11:50:05 2025
+NAMESPACE: postgresql
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+CHART NAME: postgresql
+CHART VERSION: 16.6.0
+APP VERSION: 17.4.0
+```
+
+Our error is gone, and deploy succeeds. Still things look broke AF though :( 
+
+The problem is
+
+```
+kubectl logs postgresql-postgresql-ha-pgpool-8479dbf9d-g8c6z -n postgresql
+25-04-01 10:53:34.300: child pid 242: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:53:34.301: child pid 242: FATAL:  failed to create a backend 0 connection
+2025-04-01 10:53:34.301: child pid 242: DETAIL:  not executing failover because failover_on_backend_error is off
+2025-04-01 10:53:34.326: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:53:34.326: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 0
+2025-04-01 10:53:34.340: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:53:34.341: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 1
+2025-04-01 10:53:34.354: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:53:34.354: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 2
+2025-04-01 10:53:35.372: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:53:35.372: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 0
+2025-04-01 10:53:35.384: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:53:35.384: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 1
+2025-04-01 10:53:35.400: main pid 1: WARNING:  failed to connect to PostgreSQL server, getaddrinfo() failed with error "Name or service not known"
+2025-04-01 10:53:35.400: main pid 1: LOG:  find_primary_node: make_persistent_db_connection_noerror failed on node 2
+```
+This is happening on main pgpool co-ordinator. We need to check the logs for the 0th node too.
+```
+kubectl describe pod postgresql-postgresql-ha-postgresql-0 -n postgresql
+```
+
+Events:
+  Type     Reason             Age                 From                                   Message
+  ----     ------             ----                ----                                   -------
+  Warning  FailedScheduling   39m                 gke.io/optimize-utilization-scheduler  running PreBind plugin "VolumeBinding": binding volumes: context deadline exceeded
+  Warning  FailedScheduling   35m                 gke.io/optimize-utilization-scheduler  running PreBind plugin "VolumeBinding": binding volumes: failed to get node "gke-cluster-db2-nap-e2-standard-2-1d4-a228910d-m6pp": node "gke-cluster-db2-nap-e2-standard-2-1d4-a228910d-m6pp" not found
+  Warning  FailedScheduling   35m                 gke.io/optimize-utilization-scheduler  0/7 nodes are available: 1 Insufficient cpu, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling   29m (x4 over 35m)   gke.io/optimize-utilization-scheduler  0/7 nodes are available: 1 Insufficient cpu, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling   23m                 gke.io/optimize-utilization-scheduler  0/7 nodes are available: 1 Insufficient cpu, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling   19m                 gke.io/optimize-utilization-scheduler  0/7 nodes are available: 1 node(s) didn't find available persistent volumes to bind, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}. preemption: 0/7 nodes are available: 7 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling   13m                 gke.io/optimize-utilization-scheduler  0/7 nodes are available: 1 Insufficient cpu, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling   9m4s (x2 over 12m)  gke.io/optimize-utilization-scheduler  0/7 nodes are available: 1 Insufficient cpu, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+  Warning  FailedScheduling   3m43s               gke.io/optimize-utilization-scheduler  0/7 nodes are available: 1 Insufficient cpu, 3 node(s) didn't match Pod's node affinity/selector, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
+  Normal   NotTriggerScaleUp  25m (x17 over 34m)  cluster-autoscaler                     pod didn't trigger scale-up: 3 node(s) didn't match Pod's node affinity/selector, 1 node(s) didn't find available persistent volumes to bind, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}
+  Normal   NotTriggerScaleUp  10m (x36 over 35m)  cluster-autoscaler                     pod didn't trigger scale-up: 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 1 node(s) didn't find available persistent volumes to bind, 3 node(s) didn't match Pod's node affinity/selector
+  Normal   NotTriggerScaleUp  2s (x132 over 35m)  cluster-autoscaler                     pod didn't trigger scale-up: 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) didn't match Pod's node affinity/selector, 1 node(s) didn't find available persistent volumes to bind
+```
+
+It looks like it's just resources issues, but I think we need to start the backup restore again, to be sure something wasn't missed. It worked the first time, so lets check.
 
 
 ## Verify statefulset 
