@@ -993,6 +993,108 @@ We can now delete this test project for a dry-run of the automation;
 #gcloud projects delete $PROJECT_ID
 ```
 
+## Ensuring Helm Values.yaml reaches $TARGET_CLUSTER
+So, After succesfully backing up and restoring the data of the second cluster. I noticed that helm values aren't automatically configured in the gke namespace for the seocnd cluster, in my case cluster-db2. This is fairly trivial to fix, first we need to export the values from the db-cluster1. dont worry if you dont have it, we can make new ones, its just effectively 3 files. However, its best to have these values.yaml, or, to reconstruct the yaml as it should be with the values in the helm secrets or gsm store for the variables , in this case just the password. Really there is not a lot of metadata to carry. Then we can apply the yaml to the cluster-db2 and helm will configure itself correctly on the container, with the migrated datastore from cluster-db1. 
+
+This is, really, really complicated. But in practice it turns out to be quite simple. Gcloud and Helm are doing all the heavy lifting, and as long as they do, these complexities should stay simple. One problem I had was with the image repo being an 'insecure' docker repo not being the official bitnami one. So I changed it on db2. 
+
+I then performed again the whole process, which I include here, merely for posterity, and so I can reconstruct a 'BIG' Documentation that will be a lot cleaner later on.
+
+# Summary of the Process
+```
+./
+chmod +x disater-recovery.sh
+./disaster-recovery.sh
+```
+
+Output will look like below
+```
+
+=== WARNING IMPORTANT INFORMATION FOR BACKUP PLAN UNIT TESTING ===
+Backing up data on cluster-db1 in us-central1, to be migrated to => cluster-db2 in us-west1 , for the app g-db-protected-app.
+We are creating/using g-db-protected-app-bkp-plan-01 for bkp-g-db-protected-app-bkp-plan-01 and the g-db-protected-app-rest-plan-01 for rest-g-db-protected-app-rest-plan-01 to DR Recovery into cluster-db2 bebcause of a failure on cluster-db1
+This script delays executing for 60 seconds in the hope of saving lives and jobs...
+Starting...
+Trying to get Gcloud credentials for cluster-db1 Backup procedure...
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for cluster-db1.
+Verifying Backup enabled at GKE...
+enabled=True
+Checking status of protectedapplication...
+NAMESPACE    NAME            READY TO BACKUP
+postgresql   postgresql-ha   true
+-------------- BEGIN CREATING BACKUP PLAN --------------
+START EXPORTS
+END EXPORTS
+Create request issued for: [g-db-protected-app-bkp-plan-01]
+Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501768819-631b4a39882fb-5415ffa5-6703920f] to complete...done.
+Created backup plan [g-db-protected-app-bkp-plan-01].
+-------------- END CREATING BACKUP PLAN --------------
+Trying to manually create a backup for bkp-g-db-protected-app-bkp-plan-01 in predictx-postgrescluster with a target us-west1 and Backup plan g-db-protected-app-bkp-plan-01
+------BEGIN MANUAL BACKUP------
+Create in progress for backup bkp-g-db-protected-app-bkp-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501777332-631b4a41a6808-9dbeb0ed-6674d820].
+Creating backup bkp-g-db-protected-app-bkp-plan-01...done.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Backup completed. Backup state: SUCCEEDED
+------END MANUAL BACKUP------
+--------------- BEGIN CREATING RESTORE PLAN ---------------
+Create request issued for: [g-db-protected-app-rest-plan-01]
+Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501892358-631b4aaf592e1-343c529f-8aec06d5] to complete...done.
+Created restore plan [g-db-protected-app-rest-plan-01].
+--------------- END CREATING RESTORE PLAN ---------------
+--------------- BEGIN EXECUTING RESTORE FOR bkp-g-db-protected-app-bkp-plan-01:, RESTORE TARGET = cluster-db2, FAILED SOURCE was cluster-db1 ---------------
+Create in progress for restore rest-g-db-protected-app-rest-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743501896936-631b4ab3b6d7e-54ff1e9d-51cc2c34].
+Creating restore rest-g-db-protected-app-rest-plan-01...done.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Restore completed. Restore state: FAILED
+--------------- END EXECUTING RESTORE FOR bkp-g-db-protected-app-bkp-plan-01:, RESTORE TARGET = cluster-db2, FAILED SOURCE was cluster-db1 ---------------
+Unit tests complete...
+Waiting 30 seconds before re-polling.
+INFO: The Source cluster was cluster-db1 which has been restored onto the Target Cluster cluster-db2 using g-db-protected-app-bkp-plan-01 and g-db-protected-app-rest-plan-01. The Old region was us-central1 and Disaster caused  need to migrate to the cluster-db2 IN us-west1. cluster-db2 now has full restored data that the failed cluster-db1 had..
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for cluster-db2.
+```
+
+Looks like we're all good, so lets switch our env namespace/object to cluster-db2 like follows
+Make sure you have the exports there. This is for "clean" working. and so that something wont get nuked that shouldnt.
+```
+export SOURCE_CLUSTER=cluster-db1
+export TARGET_CLUSTER=cluster-db2
+export REGION=us-central1
+export DR_REGION=us-west1
+export NAME_PREFIX=g-db-protected-app
+export BACKUP_PLAN_NAME=$NAME_PREFIX-bkp-plan-01
+export BACKUP_NAME=bkp-$BACKUP_PLAN_NAME
+export RESTORE_PLAN_NAME=$NAME_PREFIX-rest-plan-01
+export RESTORE_NAME=rest-$RESTORE_PLAN_NAME
+
+
+gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --project $PROJECT_ID                                                                
+# when you later want to switch back to cluster-db1 you can use
+# gcloud container clusters get-credentials $SOURCE_CLUSTER --region $REGION --project $PROJECT_ID
+
+```
+
+
 
 
 
