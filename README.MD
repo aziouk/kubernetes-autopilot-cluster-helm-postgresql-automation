@@ -1395,6 +1395,28 @@ ZONE_RESOURCE_POOL_EXHAUSTED 	gke-cluster-db2-pool-db-2fe134fa-v637 	us-west1-b 
 ```
 See above - Turns out, the problem with GKE backup is that there is not eough resources on west-1 anymore. I will have to change the region for cluster-db2 and re-apply the build.
 
+
+# Verifying Data Migraton between central1.cluster-db1 to => us-west1.cluster-db2
+
+```
+# create the pgclient pod
+./scripts/launch-client.sh
+# exec into pg-client
+ kubectl exec -it pg-client -n postgresql -- /bin/bash
+# connect to pgsql
+ psql -h $HOST_PGPOOL -U postgres
+# create the database marker to confirm migration of db state
+CREATE DATABASE "SUCCESFUL_MIGRATION_FROM_DB1_MARK";
+```
+
+I know its a simple test for now, but this dbdata should be seen when the cluster-db2 migrates in the data from cluster-db1 using gke backup. 
+
+We will now make one last ditch attempt to get the whole orchestration working together;
+
+```
+
+```
+
 # Here lays GKE Cloud Cluster Helm f00
 
 ## Documenting a Strange GKE Kube-DNS Build Issue

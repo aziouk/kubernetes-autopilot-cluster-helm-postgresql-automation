@@ -100,18 +100,18 @@ export DB_NAME=$(gcloud secrets versions access latest --secret=DB_NAME)
 echo "INFO/DEBUG: DB_PASSWORD is set to $DB_PASSWORD"
 echo "INFO/DEBUG: DB_NAME is set to $DB_NAME"
 
+## Application namespace lost when using this cofig :((
 #changed imageRegistry=="us-docker.pkg.dev/$PROJECT_ID/main" - image seemed more unreliable than the bitnami one.
 # this wasnt working so adding a debug
-echo "INFO/DEBUG: CURRENTLY PROJECT_ID is set to $PROJECT_ID"
- helm upgrade --install postgresql-ha bitnami/postgresql-ha \
+#echo "INFO/DEBUG: CURRENTLY PROJECT_ID is set to $PROJECT_ID"
+ helm upgrade --install postgresql . \
   --set postgresql.password="$DB_PASSWORD" \
   --set postgresql.database="$DB_NAME" \
   -n postgresql
 # --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \ these images are insecure
 
 
-# INSECURE PROCESS REMOVE FROM PROD BUILDS DANGER DANGER
-# could be cool though if got cluster dns cname and ip and stuff
+# WARNING NOT FOR PROD , INSECURE
 echo "==== BEGIN BUILD CREDENTIALS INFO===="
 printf "auth.username:postgres"; printf "\n"
 printf "auth.password:"
