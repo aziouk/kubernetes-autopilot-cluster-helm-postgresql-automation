@@ -21,30 +21,31 @@ export RESTORE_PLAN_NAME=$NAME_PREFIX-rest-plan-01
 export RESTORE_NAME=rest-$RESTORE_PLAN_NAME
 
 
-echo "===BACKUP AND TEST RESTORE->MIGRATION INITIATED==="
+echo "=== IMPORTANT INFORMATION FOR BACKUP PLAN UNIT TESTING ==="
 echo "Backing up data on $SOURCE_CLUSTER in $REGION, to be migrated to => $TARGET_CLUSTER in $DR_REGION , for the app $NAME_PREFIX."
 echo "We are using $BACKUP_PLAN_NAME for $BACKUP_NAME and the $RESTORE_PLAN_NAME for $RESTORE_NAME to DR Recovery into $TARGET_CLUSTER bebcause of a failure on $SOURCE_CLUSTER"
-
+# Let the user see the message first before going crazy with it.
+sleep 60
 
 # Ensure your in the SOURCE_CLUSTER credentials namespace (CRITICAL)
 # (best practice)
-echo "trying to get credentials for $SOURCE_CLUSTER"
+echo "Trying to get Gcloud credentials for $SOURCE_CLUSTER Backup procedure..."
 gcloud container clusters get-credentials $SOURCE_CLUSTER --region $REGION --project $PROJECT_ID
 
 
 # Verify Backup for GKE Enabled
-echo "verifying Backup enabled at GKE..."
+echo "Verifying Backup enabled at GKE..."
 gcloud container clusters describe $SOURCE_CLUSTER \
     --project=$PROJECT_ID  \
     --region=$REGION \
     --format='value(addonsConfig.gkeBackupAgentConfig)'
 
 # Verify status of the protectedapplication
-echo "checking status of protectedapplication..."
+echo "Checking status of protectedapplication..."
 kubectl get ProtectedApplication -A
 
 # Create Backup Plan
-echo "-------------- CREATING BACKUP PLAN --------------"
+echo "-------------- BEGIN CREATING BACKUP PLAN --------------"
 gcloud beta container backup-restore backup-plans create $BACKUP_PLAN_NAME \
 --project=$PROJECT_ID \
 --location=$DR_REGION \
@@ -55,7 +56,8 @@ gcloud beta container backup-restore backup-plans create $BACKUP_PLAN_NAME \
 --cron-schedule="0 3 * * *" \
 --backup-retain-days=7 \
 --backup-delete-lock-days=0
-echo "-------------- END BACKUP PLAN - CHECK IF SUCCESSFUL THIS MESSAGE ISNT CONFIRMATION OF SUCCESFUL CREATION ------------"
+echo "-------------- END CREATING BACKUP PLAN --------------"
+
 
 # Manually create a backup
 echo "Trying to manually create a backup for $BACKUP_NAME in $PROJECT_ID with a target $DR_REGION and Backup plan $BACKUP_PLAN_NAME"
