@@ -29,7 +29,7 @@ Ensure you have the following installed:
 Before using the Quick Start installers please view the prequisites and ~~GSM Setup needed for the automation components to run securely~~ (in latest version it is automatic, once vars are set right). If you have initialized GSM and installed the pre-requirements you can proceed immediately to the [install section](https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/tree/master?tab=readme-ov-file#install-method-1). In future installers GSM for the role will be installed automatically via terraform the way the other roles are added by the gke-standard and gke-autopilot scripts at build time.
 
 # Install Method 1
-```
+```bash
 wget https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/autoinstaller.sh
 cat autoinstaller.sh
 chmod +x ./autoinstaller.sh && ./autoinstaller.sh
