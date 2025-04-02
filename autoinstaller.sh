@@ -3,9 +3,9 @@
 #for sanity really in case other scripts change
 rootpath=$(pwd)
 
-#echo "Installing to $rootpath/kubernetes-autopilot-cluster-helm-postgresql-automation..."
-#git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
-#cd kubernetes-autopilot-cluster-helm-postgresql-automation
+echo "Installing to $rootpath/kubernetes-autopilot-cluster-helm-postgresql-automation..."
+git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
+cd kubernetes-autopilot-cluster-helm-postgresql-automation
 
 #chmod +x setenv.sh
 echo "Sourcing environment variabbles for project_id..."
