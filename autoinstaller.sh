@@ -4,6 +4,14 @@
 #for sanity really in case other scripts change
 rootpath=$(pwd)
 
+# Ensure that pre-requirements are installed
+if ! command -v gcloud &> /dev/null; then
+    echo "Error: gcloud command not found. Please install the required dependencies first."
+    echo "Note: This script does not install gcloud automatically, as using package managers like brew can modify your environment in unintended ways."
+    exit 1
+fi
+
+
 # Ensuring those who manually git clone dont end up with an extra dir.
 # Target directory name
 target_dir="kubernetes-autopilot-cluster-helm-postgresql-automation"
