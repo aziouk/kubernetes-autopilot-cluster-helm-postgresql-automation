@@ -20,9 +20,6 @@ else
 fi
 
 
-echo "Installing to $rootpath/kubernetes-autopilot-cluster-helm-postgresql-automation..."
-git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
-cd kubernetes-autopilot-cluster-helm-postgresql-automation
 
 #chmod +x setenv.sh
 echo "Sourcing environment variabbles for project_id..."
