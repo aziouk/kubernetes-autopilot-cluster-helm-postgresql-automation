@@ -21,7 +21,6 @@ fi
 
 
 
-#chmod +x setenv.sh
 echo "Sourcing environment variabbles for project_id..."
 . setenv.sh
 
