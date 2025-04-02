@@ -41,6 +41,11 @@ curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-he
 This autoinstaller will complete the configuration of both components for google cloud GKE cluster and Helm postgres chart install.
 Autoinstaller supports gke-standard cluster via terraform and helm chart postgresql. gke-autopilot not production ready yet. 
 
+# Uninstall 
+An uninstaller is built into the autoinstall, and will uninstall helm chart in your gcloud project, and destroy all terraform objects created by the autoinstaller
+```
+./autoinstaller.sh uninstall
+```
 
 ## Initializing GSM 
 <p align="left">
