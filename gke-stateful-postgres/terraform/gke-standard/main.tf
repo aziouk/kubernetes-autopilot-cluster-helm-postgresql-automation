@@ -130,6 +130,7 @@ module "gke-db2" {
   subnetwork               = module.network.secondary_subnet_name
   ip_range_pods            = "ip-range-pods-db2"
   ip_range_services        = "ip-range-svc-db2"
+  release_channel          = "RAPID"
   create_service_account   = false
   service_account          = module.gke-db1.service_account
   enable_private_endpoint  = false
