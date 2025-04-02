@@ -12,7 +12,7 @@ This resource consists of two components 1. Terraform Templates for **Google Kub
 ## 📌 Prerequisites
 
 ### ✅ Required Software
-To run this script gcloud and its dependencies must be installed, and your gcloud cli is authenticated (gcloud auth set credentials). It is recommended to create a blank project until this release is prod ready. The default setenv project_id is predictx-postgrescluster. Your Gcloud project will need to be called this, and your gcloud authed with a user that has permissions (preferably) only to that project, to prevent possible disasters. If you would like to use a different project_id you can do that by altering the values in setenv.sh
+To run this script 1. gcloud and its dependencies must be installed. 2. gcloud cli is authenticated 3. Recommended to set a blank project. The default setenv project_id is predictx-postgrescluster. If you would like to use a different project_id you can do that by altering the project_id value in setenv.sh. 4. You must preset the GSM secrets $DB_PASSWORD, $DB_NAME for use with the postgresql ha chart. An example of GSM initialization can be found below if you have difficulty. To clarify HELM uses GSM Secrets and they <mark> must be set </mark>
 Ensure you have the following installed:
 
 | Dependency         | Purpose                                          | Install Command |
@@ -56,10 +56,10 @@ Replace <mark>px-user-password</mark>, <mark>px-user</mark> and <mark>px-databas
 
 ```bash
 gcloud secrets create DB_PASSWORD --replication-policy="automatic"
-gcloud secrets create DB_USER --replication-policy="automatic"
+#gcloud secrets create DB_USER --replication-policy="automatic" # unused at present
 gcloud secrets create DB_NAME --replication-policy="automatic"
 echo -n "px-user-password" | gcloud secrets versions add DB_PASSWORD --data-file=-
-echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=-
+#echo -n "px-user" | gcloud secrets versions add DB_USER --data-file=- # unused at present,default postgres, ctrl+f and search for TERTIARY in the readme docs for more detail
 echo -n "px-database" | gcloud secrets versions add DB_NAME --data-file=-
 
 # Recommend to sanitize the plaintext password entry from BASH History something like
