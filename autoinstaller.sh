@@ -1,6 +1,9 @@
 #/bin/bash
 # this script is a placeholder for something that could be a bit better soon
 
+# We really need to add some vars here that the user could provide, or make the script exit if the user has not edited the gsm secrets in helm_deploy_postgresql.sh
+# Not sure the best way to do this, but it is discsued in detail in the README docs, that, the best way would be for helm to autogenerate the password and dbname.
+
 #for sanity really in case other scripts change
 rootpath=$(pwd)
 
