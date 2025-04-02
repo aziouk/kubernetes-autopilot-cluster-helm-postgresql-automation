@@ -80,7 +80,7 @@ gcloud secrets versions access latest --secret=DB_NAME
 ```
 
 ### ✅ Enable Required Google Cloud APIs
-Run the following command to enable required APIs:
+~~Run the following command to enable required APIs:~~ *Now Automatic*
 ```bash
 gcloud services enable \
   compute.googleapis.com \
