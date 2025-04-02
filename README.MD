@@ -2430,20 +2430,20 @@ kubectl describe pod <postgresql-pod-name> -n postgresql
 grep -r "password" helm/templates/
 ```
 
-#🚨 How this Could Break Your HA PostgreSQL Chart
+# How this Could Break Your HA PostgreSQL Chart
 
-    ##Password Might Be Required
+## 1.Password Might Be Required
 
 1. Many PostgreSQL Helm charts (especially HA ones) require a password to properly initialize replication and clustering.
-    * If postgresql.password is empty, the cluster might fail to start or could create an unexpected default password that doesn’t match what other services expect.
+If postgresql.password is empty, the cluster might fail to start or could create an unexpected default password that doesn’t match what other services expect.
 
-    ##2.Database Initialization Issues
+## 2.Database Initialization Issues
 
-        If postgresql.database is empty, the chart might not create a database, causing connection failures for apps expecting it.
+If postgresql.database is empty, the chart might not create a database, causing connection failures for apps expecting it.
 
-    ##HA Components (PgPool, Replication) Might Fail
+## HA Components (PgPool, Replication) Might Fail
 
-        If HA features like PgPool-II or Patroni depend on these values being set, they could fail to configure correctly.
+If HA features like PgPool-II or Patroni depend on these values being set, they could fail to configure correctly.
 
 ## 🔍 How to Check if It's Causing Issues
 ```
