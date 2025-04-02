@@ -41,6 +41,8 @@ echo "Exporting Namespace for $PROJECT_ID, $SOURCE_CLUSTER..."
 export NAMESPACE=postgresql
 kubectl create namespace $NAMESPACE
 
+# had some issues with this previously being injected into image as [PROJECT_ID] no idea why.
+export PROJECT_ID=$PROJECT_ID
 
 # increase replicas to 3set PodAntiAffinity with requiredDuringSchedulingIgnoredDuringExecution and topologykey:"topology.kubernetes.io/zone"
 # used by autopilot and big replica sets only danger [replication is v. expensive] multiplies cloud size etc.
@@ -107,12 +109,12 @@ echo "INFO/DEBUG: DB_NAME is set to $DB_NAME"
  helm upgrade --install postgresql . \
   --set postgresql.password="$DB_PASSWORD" \
   --set postgresql.database="$DB_NAME" \
+  --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \ 
   -n postgresql
-# --set global.imageRegistry="us-docker.pkg.dev/$PROJECT_ID/main" \ these images are insecure
 
 
 # WARNING NOT FOR PROD , INSECURE
-echo "==== BEGIN BUILD CREDENTIALS INFO===="
+e#cho "==== BEGIN BUILD CREDENTIALS INFO===="
 printf "auth.username:postgres"; printf "\n"
 printf "auth.password:"
 echo $(gcloud secrets versions access latest --secret=DB_PASSWORD)

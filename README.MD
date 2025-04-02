@@ -1203,7 +1203,193 @@ Unfortunately babckups are still failing, either because of misconfiguration or 
 failed to prepare backup for ProtectedApplication "postgresql/postgresql-ha": PVC data-postgresql-ha-postgresql-0 is not a volume backup candidate: PVC is not bound to a PV 
 ```
 
-I'm sure someone more expert in google cloud understands how to fix it. So I wont waste too much more time now.
+## Root Cause of GKE Backup Failures
+I have discovered the cause of GKE Backup failure.
+
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pvc -n $NAMESPACE
+NAME                                         STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  VOLUMEATTRIBUTESCLASS   AGE
+data-postgresql-0                            Bound     pvc-d4459d8e-809c-4ec1-819f-183fd6fcfc6d   8Gi        RWO            standard-rwo                  <unset>                 9h
+data-postgresql-ha-postgresql-0              Pending                                                                        standard-rwo                  <unset>                 9h
+data-postgresql-ha-postgresql-1              Pending                                                                        standard-rwo                  <unset>                 9h
+data-postgresql-ha-postgresql-2              Bound     pvc-edc7ed43-5507-4c8c-863a-450d5ba05b7b   8Gi        RWO            standard-rwo                  <unset>                 9h
+data-postgresql-postgresql-ha-postgresql-0   Bound     pvc-c98daa7b-c243-400f-91e7-5d7d88183ef5   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 9h
+data-postgresql-postgresql-ha-postgresql-1   Bound     pvc-5cb16910-2496-41e1-b517-03d2033291c9   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 9h
+data-postgresql-postgresql-ha-postgresql-2   Bound     pvc-c57ddcc4-9191-4689-a53d-0d94c6db4a63   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 9h
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pods -n postgresql
+NAME                                                    READY   STATUS    RESTARTS   AGE
+pg-client                                               1/1     Running   0          9h
+postgresql-postgresql-bootstrap-pgpool-d6dd4dd4-5z76f   1/1     Running   0          9h
+postgresql-postgresql-ha-pgpool-8479dbf9d-r75rr         1/1     Running   0          9h
+postgresql-postgresql-ha-postgresql-0                   2/2     Running   0          9h
+postgresql-postgresql-ha-postgresql-1                   2/2     Running   0          9h
+postgresql-postgresql-ha-postgresql-2                   2/2     Running   0          9h
+```
+
+You can see that the 1 and 2 nodes have pending statuses. 
+
+### Steps to Fix Pending PVCs and Unblock Backups
+#
+First we need to get the PVC descriptions for the offending VM's breaking the backup.
+```
+kubectl describe pvc data-postgresql-ha-postgresql-0 -n $NAMESPACE
+
+kubectl describe pvc data-postgresql-ha-postgresql-1 -n $NAMESPACE
+```
+
+Output in this case yields the cause
+
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl describe pvc data-postgresql-ha-postgresql-0 -n $NAMESPACE
+kubectl describe pvc data-postgresql-ha-postgresql-1 -n $NAMESPACE
+Name:          data-postgresql-ha-postgresql-0
+Namespace:     postgresql
+StorageClass:  standard-rwo
+Status:        Pending
+Volume:
+Labels:        app.kubernetes.io/component=postgresql
+               app.kubernetes.io/instance=postgresql-ha
+               app.kubernetes.io/name=postgresql-ha
+               role=data
+Annotations:   <none>
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:
+Access Modes:
+VolumeMode:    Filesystem
+Used By:       <none>
+Events:
+  Type    Reason                Age                   From                         Message
+  ----    ------                ----                  ----                         -------
+  Normal  WaitForFirstConsumer  3m1s (x2321 over 9h)  persistentvolume-controller  waiting for first consumer to be created before binding
+Name:          data-postgresql-ha-postgresql-1
+Namespace:     postgresql
+StorageClass:  standard-rwo
+Status:        Pending
+Volume:
+Labels:        app.kubernetes.io/component=postgresql
+               app.kubernetes.io/instance=postgresql-ha
+               app.kubernetes.io/name=postgresql-ha
+               role=data
+Annotations:   <none>
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:
+Access Modes:
+VolumeMode:    Filesystem
+Used By:       <none>
+Events:
+  Type    Reason                Age                   From                         Message
+  ----    ------                ----                  ----                         -------
+  Normal  WaitForFirstConsumer  3m2s (x2321 over 9h)  persistentvolume-controller  waiting for first consumer to be created before binding
+```
+
+It seems the controller appears missing because it waiting for first consumer.
+
+## #WaitForFirstConsumer Explained
+
+The WaitForFirstConsumer mode is a volume binding strategy defined in the storage class. Instead of binding a Persistent Volume (PV) immediately when a Persistent Volume Claim (PVC) is created, Kubernetes waits until a pod that uses the PVC is scheduled. This delay allows the scheduler to consider the pod’s placement (such as zone or node affinity) so that the selected PV is optimally located relative to the pod.
+
+In our case, the PVCs are waiting for a pod consumer to trigger binding. If no pod is scheduled to use these PVCs, they remain in the Pending state.
+
+## Root Cause
+
+The Second helm group tags are not right or in improper state, or uncleanly handled when changing the helm template. This might be possible if different versions are installed/uninstalled. So we will force a reconcilation of those volumes by deleting them. It may or may not be necessary to restart the stateful application too in some cases.
+
+```
+kubectl delete pvc data-postgresql-ha-postgresql-0 -n $NAMESPACE
+kubectl delete pvc data-postgresql-ha-postgresql-1 -n $NAMESPACE
+persistentvolumeclaim "data-postgresql-ha-postgresql-0" deleted
+persistentvolumeclaim "data-postgresql-ha-postgresql-1" deleted
+```
+
+Now when we refresh the pvc our two offending entries disappear
+
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pvc -n $NAMESPACE
+NAME                                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  VOLUMEATTRIBUTESCLASS   AGE
+data-postgresql-0                            Bound    pvc-d4459d8e-809c-4ec1-819f-183fd6fcfc6d   8Gi        RWO            standard-rwo                  <unset>                 10h
+data-postgresql-ha-postgresql-2              Bound    pvc-edc7ed43-5507-4c8c-863a-450d5ba05b7b   8Gi        RWO            standard-rwo                  <unset>                 10h
+data-postgresql-postgresql-ha-postgresql-0   Bound    pvc-c98daa7b-c243-400f-91e7-5d7d88183ef5   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 10h
+data-postgresql-postgresql-ha-postgresql-1   Bound    pvc-5cb16910-2496-41e1-b517-03d2033291c9   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 10h
+data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c57ddcc4-9191-4689-a53d-0d94c6db4a63   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 10h
+```
+
+Either, GKE backup is trying to make new entries breaking backup, or GKE doesn't know what to do with the extra erroneous disks, so panics out. I think, everything makes sense. We will now retry the automation for GKE to confirm whether it was GKE responsible for it, or GKE was failing because of it. And this time, for good measure, I think we will add some debug for the PVC in the disaster-recovery backup plan creation / execution tool I wrote.
+
+### The big moment
+Immediately upon running GKE Backups we can see things are much better already, with backup succeeding immediately.
+```
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# ./disaster-recovery.sh
+=== WARNING IMPORTANT INFORMATION FOR BACKUP PLAN UNIT TESTING ===
+Backing up data on cluster-db1 in us-central1, to be migrated to => cluster-db2 in us-west1 , for the app g-db-protected-app.
+We are creating/using g-db-protected-app-bkp-plan-01 for bkp-g-db-protected-app-bkp-plan-01 and the g-db-protected-app-rest-plan-01 for rest-g-db-protected-app-rest-plan-01 to DR Recovery into cluster-db2 bebcause of a failure on cluster-db1
+This script delays executing for 60 seconds in the hope of saving lives and jobs...
+Starting...
+Trying to get Gcloud credentials for cluster-db1 Backup procedure...
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for cluster-db1.
+DEBUG INFO: Getting pvc for postgresql
+NAME                                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  VOLUMEATTRIBUTESCLASS   AGE
+data-postgresql-0                            Bound    pvc-d4459d8e-809c-4ec1-819f-183fd6fcfc6d   8Gi        RWO            standard-rwo                  <unset>                 10h
+data-postgresql-ha-postgresql-2              Bound    pvc-edc7ed43-5507-4c8c-863a-450d5ba05b7b   8Gi        RWO            standard-rwo                  <unset>                 10h
+data-postgresql-postgresql-ha-postgresql-0   Bound    pvc-c98daa7b-c243-400f-91e7-5d7d88183ef5   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 10h
+data-postgresql-postgresql-ha-postgresql-1   Bound    pvc-5cb16910-2496-41e1-b517-03d2033291c9   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 10h
+data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c57ddcc4-9191-4689-a53d-0d94c6db4a63   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 10h
+END DEUG INFO
+Verifying Backup enabled at GKE...
+enabled=True
+Checking status of protectedapplication...
+NAMESPACE    NAME            READY TO BACKUP
+postgresql   postgresql-ha   true
+-------------- BEGIN CREATING BACKUP PLAN --------------
+START EXPORTS
+END EXPORTS
+Create request issued for: [g-db-protected-app-bkp-plan-01]
+Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743576454731-631c60739160d-d1f2ba19-e73ee624] to complete...done.
+Created backup plan [g-db-protected-app-bkp-plan-01].
+-------------- END CREATING BACKUP PLAN --------------
+Trying to manually create a backup for bkp-g-db-protected-app-bkp-plan-01 in predictx-postgrescluster with a target us-west1 and Backup plan g-db-protected-app-bkp-plan-01
+------BEGIN MANUAL BACKUP------
+Create in progress for backup bkp-g-db-protected-app-bkp-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743576462552-631c607b06f89-b568b915-57537d4f].
+Creating backup bkp-g-db-protected-app-bkp-plan-01...done.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Waiting for backup to complete... Backup state: IN_PROGRESS.
+Backup completed. Backup state: SUCCEEDED
+------END MANUAL BACKUP------
+--------------- BEGIN CREATING RESTORE PLAN ---------------
+Create request issued for: [g-db-protected-app-rest-plan-01]
+Waiting for operation [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743576577249-631c60e8691d0-6db404aa-f7d0a313] to complete...done.
+Created restore plan [g-db-protected-app-rest-plan-01].
+--------------- END CREATING RESTORE PLAN ---------------
+--------------- BEGIN EXECUTING RESTORE FOR bkp-g-db-protected-app-bkp-plan-01:, RESTORE TARGET = cluster-db2, FAILED SOURCE was cluster-db1 ---------------
+Create in progress for restore rest-g-db-protected-app-rest-plan-01 [projects/predictx-postgrescluster/locations/us-west1/operations/operation-1743576581781-631c60ecbb7ed-fc419f39-a5ff94e7].
+Creating restore rest-g-db-protected-app-rest-plan-01...done.
+Waiting for restore to complete... Restore state: CREATING.
+Waiting for restore to complete... Restore state: IN_PROGRESS.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+Waiting for restore to complete... Restore state: VALIDATING.
+```
+
+Unfortunately, it looks like the second cluster has some provisioning issues in one of its availability zones us-west1-b, or is hitting some uper memory limit. I actually expected the cluster-db2 instance to resize any limits to match the source cluster itself, but, this seems in retrospect, too good to be true. Finally, after everything is working with backup procedure, to get restore procedure working, cluster configurations should be as closely matched as possible. So that restore will succeed, and, helm must only be runonce on the init of a cluster, reconfiguring helm, i.e. running it twice, or more is the cause of PVC Issues preventing backup. And, limits on the second cluster often are reasons why restore can fail. All in all, everything is, mostly, working for DR in the postgresql HA. 
+
+
+
 
 # A Grim Situation in postgres GXE HA - guidebook
 The trim situation has been we have multiple problems obfuscating eachother. 
@@ -1233,6 +1419,7 @@ postgresql-postgresql-ha-postgresql-2             0/2     Pending            0  
 ```
 
 We can see pgpool is in crashloopbackoff, normally a state from improper helm configuration, however, the ha nodes are failing to get the necessary PDB sometimes inconsistently. We reduce the replicas to 0, and rebuild the clusters normally to resolve this.
+
 
 ## Implement Helm on the Cluster-db2
 ```

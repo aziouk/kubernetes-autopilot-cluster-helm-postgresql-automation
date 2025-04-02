@@ -153,7 +153,7 @@ module "gke-db2" {
       name            = "pool-sys"
       autoscaling     = true
       min_count       = 1
-      max_count       = 10
+      max_count       = 3
       max_surge       = 1
       max_unavailable = 0
       machine_type    = "e2-standard-2"

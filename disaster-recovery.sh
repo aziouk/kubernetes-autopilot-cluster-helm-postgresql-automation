@@ -30,6 +30,13 @@ echo "Starting..."
 echo "Trying to get Gcloud credentials for $SOURCE_CLUSTER Backup procedure..."
 gcloud container clusters get-credentials $SOURCE_CLUSTER --region $REGION --project $PROJECT_ID
 
+# DEBUG , important for PVC binding failures related to helm cluster group naming or different repo object name usage of stateful group
+# basically, if this comes back with any unbound volumes before GKE runs backups should be aborted. #todo write processor for it
+
+echo "DEBUG INFO: Getting pvc for $NAMESPACE"
+kubectl get pvc -n $NAMESPACE
+echo "END DEUG INFO"
+
 
 # Verify Backup for GKE Enabled
 echo "Verifying Backup enabled at GKE..."
@@ -105,6 +112,12 @@ gcloud beta container backup-restore restores create $RESTORE_NAME \
 echo "--------------- END EXECUTING RESTORE FOR $BACKUP_NAME:$BACKUP_PLAN, RESTORE TARGET = $TARGET_CLUSTER, FAILED SOURCE was $SOURCE_CLUSTER ---------------"
 
 echo "Unit tests complete..."
+
+# Lets check the PVC After the GKE Backup has run, to see if it is GKE related process for any bind failures on the stateful group backend
+echo "DEBUG INFO: Getting pvc for $NAMESPACE"
+kubectl get pvc -n $NAMESPACE
+echo "END DEUG INFO"
+
 
 # Grace time
 echo "Waiting 30 seconds before re-polling."
