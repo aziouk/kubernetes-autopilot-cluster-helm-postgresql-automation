@@ -79,7 +79,8 @@ gcloud secrets versions access latest --secret=DB_PASSWORD
 gcloud secrets versions access latest --secret=DB_NAME
 ```
 
-### ~~ ✅ Enable Required Google Cloud APIs ~~
+### ✅ Enable Required Google Cloud APIs 
+~~ Enable the following API's in Gcloud ~~ *Deprecated now automatic*
 
 ## ✅ Required IAM Permissions
 
