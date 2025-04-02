@@ -6,8 +6,9 @@ rootpath=$(pwd)
 
 # Ensure that pre-requirements are installed
 if ! command -v gcloud &> /dev/null; then
-    echo "Error: gcloud command not found. Please install the required dependencies first."
+    echo "Error: gcloud command not found. Please install the required dependencies first described in prequirements.txt."
     echo "Note: This script does not install gcloud automatically, as using package managers like brew can modify your environment in unintended ways."
+    curl -O https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation/refs/heads/master/requirements.txt
     exit 1
 fi
 
