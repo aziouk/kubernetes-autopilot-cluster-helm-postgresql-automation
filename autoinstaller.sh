@@ -1,7 +1,24 @@
+#/bin/bash
 # this script is a placeholder for something that could be a bit better soon
 
 #for sanity really in case other scripts change
 rootpath=$(pwd)
+
+# Ensuring those who manually git clone dont end up with an extra dir.
+# Target directory name
+target_dir="kubernetes-autopilot-cluster-helm-postgresql-automation"
+
+# Check if PWD ends with target directory name and run commands if true
+if [[ "$(pwd)" == *"/$target_dir" ]]; then
+    echo "In $target_dir, so no need to git clone the repo..."
+
+else
+        echo "Not in $target_dir, so assuming quick install being run without project..."
+	echo "Installing to $rootpath/kubernetes-autopilot-cluster-helm-postgresql-automation..."
+	git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
+	cd kubernetes-autopilot-cluster-helm-postgresql-automation
+fi
+
 
 echo "Installing to $rootpath/kubernetes-autopilot-cluster-helm-postgresql-automation..."
 git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
@@ -26,6 +43,25 @@ echo "Initializing Helm Deploy Script"
 cd ../
 chmod +x helm_deploy_postgresql.sh
 ./helm_deploy_postgresql.sh
+
+
+# Quick Uninstall 
+
+# Run the command if an argument is provided
+if [[ "$1" == "uninstall" ]]; then
+
+ read -p "Are you sure you want to proceed with uninstallation? (y/N): " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+        echo "Running uninstall ..."
+	helm uninstall postgresql
+        terraform -chdir=terraform/gke-standard destroy -var project_id=predictx-postgrescluster
+
+    else
+        echo "Uninstallation cancelled."
+        exit 1
+    fi
+fi
+
 
 # DEPRECATED SECTION - Handled by Helm and GSM now but handy to have
 #
