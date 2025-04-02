@@ -1390,7 +1390,8 @@ Backup now completes, but restore does not complete because the cluster configur
 
 # Troubleshooting GKE Restore to Cluster-DB2
 
-`[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# gcloud container clusters get-credentials $SOURCE_CLUSTER --region=$REGION
+```
+kubernetes-autopilot-cluster-helm-postgresql-automation]# gcloud container clusters get-credentials $SOURCE_CLUSTER --region=$REGION
 Fetching cluster endpoint and auth data.
 kubeconfig entry generated for cluster-db1.
 [root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pvc -n $NAMESPACE
