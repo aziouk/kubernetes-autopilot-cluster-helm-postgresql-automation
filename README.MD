@@ -118,9 +118,8 @@ The following IAM permissions are required to deploy the GKE cluster and Postgre
 ```
 
 # Manual Installation Details
-cd to gke-stateful-postgres
 ```bash
-git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
+#git clone https://github.com/aziouk/kubernetes-autopilot-cluster-helm-postgresql-automation
 cd kubernetes-autopilot-cluster-helm-postgresql-automation/gke-stateful-postgres
 ```
 then follow the below instructions carefully to carry out manual installation of the automation.
