@@ -126,8 +126,8 @@ cd kubernetes-autopilot-cluster-helm-postgresql-automation/gke-stateful-postgres
 then follow the below instructions carefully to carry out manual installation of the automation.
 
 
-## Creating the necessary IAM bindings
-Replacing <mail> with the desired service account user
+## ~~Creating the necessary IAM bindings~~
+Replacing <mail> with the desired service account user. This is deprecated now, most of these roles should be added automatically by the terraform templates automation.
 ```bash
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/storage.objectViewer
 gcloud projects add-iam-policy-binding predictx-postgrescluster --member="user:<email>" --role=roles/logging.logWriter
