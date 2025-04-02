@@ -2489,7 +2489,7 @@ helm upgrade --install postgresql . \
 ```
 kubectl get statefulset -n postgresql
 ```
-## 🔍Step 1 Finding the Correct StatefulSet Name if statefulset missing
+## Finding the Correct StatefulSet Name if statefulset missing
 
 ```
 kubectl get all -n postgresql
