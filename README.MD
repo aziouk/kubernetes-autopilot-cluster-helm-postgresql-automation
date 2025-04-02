@@ -1,7 +1,7 @@
 # 🚀 Deploy PostgreSQL on GKE with Terraform
 
 ## What this does
-This provides terraform and helm automation templates for multi region, redundant, stateful Google Cloud GKE Cluster, for PostgreSQL HA using Helm Charts and Docker-Kubernetes as a deployment strategy.
+This provides terraform and helm automation templates for multi region, redundant, stateful Google Cloud GKE Cluster, for PostgreSQL HA using Helm Charts and Docker-Kubernetes as a deployment strategy. At present the script deploys 2 GKE clusters. (cluster-db1 a presetup postgresql ha group of 3 nodes) and the other (cluster-db2 barebones) is a standby gke-build with nearly identical settings. Deployment is regional, but support exists for highly customizable configurations including regional or zonal clusters, defined node location groupings, random selection of available zones in regions and more. In future versions I anticipate many of these settings will be passable directly to the autoinstaller.sh or as terraform/helm vars for maximal infrastructure as cloud automation.
 
 This github repo collection uses the reference samples from google cloud. We have forked it at https://github.com/aziouk/kubernetes-engine-samples and that fork is a subrepo of this repo. The GoogleCloudPlatform samples repo can be found [here](https://github.com/GoogleCloudPlatform/kubernetes-engine-samples).
 
@@ -863,7 +863,9 @@ This is, really, really complicated. But in practice it turns out to be quite si
 
 I then performed again the whole process, which I include here, merely for posterity, and so I can reconstruct a 'BIG' Documentation that will be a lot cleaner later on.
 
-# Summary of the Process
+# Disaster Recovery
+
+A helpful script is provided that will automate a single backup plan, restore plan, backup and restore between two cluster-db databases. This is intended for use in testing only at present. i.e. for testing backup of cluster-db1 ha set, and failover recovery to cluster-db2. Not much work has been done to support transition, but a LB reconfigurable when running the disaster script, either manually or automatically via a GCP instance group configuration seems like best approach. 
 ```
 ./
 chmod +x disater-recovery.sh
