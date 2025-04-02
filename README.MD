@@ -1560,7 +1560,7 @@ I also notice that one of the $TARGET_CLUSTER cluster-db2 pools has this configu
 We add us-west1-b and us-west1-c again, to make sure the exact number of pool regions are the same between the clusters. And then re-apply. Hopefully this should lead to 3 nodes per zone, preventing gke backup restore failures in future.
 
 
-``
+```
 [root@localhost gke-stateful-postgres]# cat terraform/gke-standard/main.tf | grep "node_locations"
       node_locations  = "us-central1-a,us-central1-b,us-central1-c"
       node_locations  = "us-central1-a,us-central1-b,us-central1-c"
