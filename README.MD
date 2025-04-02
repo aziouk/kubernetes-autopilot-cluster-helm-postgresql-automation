@@ -2144,8 +2144,7 @@ The issue is definitely kaliko i think. You can try running the following to get
 12m         Normal    NotTriggerScaleUp        pod/event-exporter-gke-746c49d5b8-4mtbz                              pod didn't trigger scale-up: 9 max cluster cpu, memory limit reached
 11m         Warning   FailedScheduling         pod/event-exporter-gke-746c49d5b8-4mtbz                              0/7 nodes are available: 1 Insufficient memory, 3 node(s) had untolerated taint {app.stateful/component: postgresql-pgpool}, 3 node(s) had untolerated taint {app.stateful/component: postgresql}. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.
 ```
-
-It looks like the dns is causing taints in the whole build process because some memory quota limit is reached. Unfortunately the error message is so unhelpful it is dificult to conclude what 9 max cluster cpu refers to. I've checked in quotas and everything looks fine. so weird.
+This is caused by the min unavailable or memory limit value, preventing a node from being scheduled.
 
 
 # Reconfiguring Kube-Dns, Reinstalling, Pulling new configmap
