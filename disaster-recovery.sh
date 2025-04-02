@@ -125,7 +125,7 @@ echo "INFO: The Source cluster was $SOURCE_CLUSTER which has been restored onto 
 sleep 30
 
 # Verification steps checking cluster restored
-
-gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --project $PROJECT_ID
+# this is kind of not good, removing for now
+#gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --project $PROJECT_ID
 
 

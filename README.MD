@@ -1602,6 +1602,12 @@ Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 
 We now have 3 instances (1 per zone) as anticipated. Now we can retry the GKE Backup automation, and, in theory, it should succeed flawlessly with the test data we populated cluster-db1 with. It seems some of the cluster configuration generated at build time calculated the per zone variable, so we now take this into account. The automation should provide all states for the infrastructure, without any intervention such as this. This is why we are matching everything correctly, testing each component interactions with eachother,so that the template will work in all circumstances without intervention.
 
+
+# Re-Testing GKE Restores
+The only thing that was broken in Backup for GKE was restores, now we have given the correct matched resources and zonal configurations of each cluster, the restore should complete. So I deleted the 'restores' rest-g-db-protected-app-rest-plan-01, and manually re-tested it with the new cloud configuration we've pushed with terraform.
+
+
+
 # A Grim Situation in postgres GXE HA - guidebook
 The trim situation has been we have multiple problems obfuscating eachother. 
 
