@@ -2430,7 +2430,7 @@ kubectl describe pod <postgresql-pod-name> -n postgresql
 grep -r "password" helm/templates/
 ```
 
-#🚨 How This Could Break Your HA PostgreSQL Chart
+#🚨 How this Could Break Your HA PostgreSQL Chart
 
     ##Password Might Be Required
 
