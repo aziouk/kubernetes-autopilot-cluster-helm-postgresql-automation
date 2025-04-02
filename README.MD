@@ -2441,7 +2441,7 @@ If postgresql.password is empty, the cluster might fail to start or could create
 
 If postgresql.database is empty, the chart might not create a database, causing connection failures for apps expecting it.
 
-## HA Components (PgPool, Replication) Might Fail
+## 3.HA Components (PgPool, Replication) Might Fail
 
 If HA features like PgPool-II or Patroni depend on these values being set, they could fail to configure correctly.
 
