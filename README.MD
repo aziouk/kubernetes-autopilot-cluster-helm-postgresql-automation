@@ -1559,6 +1559,48 @@ I also notice that one of the $TARGET_CLUSTER cluster-db2 pools has this configu
 We add us-west1-b and us-west1-c again, to make sure the exact number of pool regions are the same between the clusters. And then re-apply. Hopefully this should lead to 3 nodes per zone, preventing gke backup restore failures in future.
 
 
+``
+[root@localhost gke-stateful-postgres]# cat terraform/gke-standard/main.tf | grep "node_locations"
+      node_locations  = "us-central1-a,us-central1-b,us-central1-c"
+      node_locations  = "us-central1-a,us-central1-b,us-central1-c"
+      node_locations  = "us-west1-b,us-west1-a,us-west1-c"
+      node_locations  = "us-west1-a,us-west1-b,us-west1-c"
+```
+
+Now we can see the 4 node-locations are identical in their number, and, adding the extra 2 node_locations should account for the 2 missing PVC's when doing backup restore from cluster-db1->cluster-db2.
+
+After applying the changes we can see that the db-pool of cluster-db2 now has 3 nodes (1 per zone), but , for some reason db-sys has only 2 nodes even though it should have 1 per zone. In GCP UI we check workloads to make sure nothing is failing to build. And all looks fine, so we delete the node_sys on GCP side, and re-run the terraform script to re-add the missing pool.  the cluster-db pool-sys is definitely reconfigured because it says 0-2 per zone. We need 1 per zone so lets delete that sys-pool and let the automation re-add it, to confirm our runonce automation will succeed for a dry run of all parts of the automation components described in this document.
+
+```
+terraform -chdir=terraform/gke-standard apply -var project_id=$PROJECT_ID
+<snip>
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Creating...
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [10s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [20s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [30s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [40s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [50s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [1m0s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [1m10s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [1m20s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [1m30s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [1m40s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still creating... [1m50s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Creation complete after 1m57s [id=projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2/nodePools/pool-sys]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+```
+
+We now have 3 instances (1 per zone) as anticipated. Now we can retry the GKE Backup automation, and, in theory, it should succeed flawlessly with the test data we populated cluster-db1 with. It seems some of the cluster configuration generated at build time calculated the per zone variable, so we now take this into account. The automation should provide all states for the infrastructure, without any intervention such as this. This is why we are matching everything correctly, testing each component interactions with eachother,so that the template will work in all circumstances without intervention.
 
 # A Grim Situation in postgres GXE HA - guidebook
 The trim situation has been we have multiple problems obfuscating eachother. 
