@@ -12,7 +12,7 @@ This resource consists of two components 1. Terraform Templates for **Google Kub
 ## 📌 Prerequisites
 
 ### ✅ Required Software
-To run this script gcloud and its dependencies must be installed, and your gcloud cli is authenticated (gcloud auth set credentials). It is recommended to use a blank project until it is production ready to prevent disasters.
+To run this script gcloud and its dependencies must be installed, and your gcloud cli is authenticated (gcloud auth set credentials). It is recommended to create a blank project until this release is prod ready. The default setenv project_id is predictx-postgrescluster. Your Gcloud project will need to be called this, and your gcloud authed with a user that has permissions (preferably) only to that project, to prevent possible disasters. If you would like to use a different project_id you can do that by altering the values in setenv.sh
 Ensure you have the following installed:
 
 | Dependency         | Purpose                                          | Install Command |
