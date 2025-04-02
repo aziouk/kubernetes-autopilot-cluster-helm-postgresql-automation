@@ -36,6 +36,9 @@ fi
 echo "Sourcing environment variabbles for project_id..."
 . setenv.sh
 
+echo "Installing Necessary API's in Gcloud..."
+chmod +x ./helpers/api-enabler.sh
+./helpers/api-enabler.sh
 
 cd gke-stateful-postgres
 echo "Starting terraform initailization..."
