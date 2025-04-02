@@ -2743,3 +2743,4 @@ curl -s https://raw.githubusercontent.com/aziouk/kubernetes-autopilot-cluster-he
 TODO: expose port or create vpn gateway / bastion for privatenet and document process etc
 TODO: DRYRUN
 
+FIX VAR naming conventions and $NAMESPACE as an argument var for installer. See introduction for aspirations of autoinstaller and template vars for efficient and EZ IAC deployment.
