@@ -12,6 +12,7 @@ This resource consists of two components 1. Terraform Templates for **Google Kub
 ## 📌 Prerequisites
 
 ### ✅ Required Software
+To run this script gcloud and its dependencies must be installed, and your gcloud cli is authenticated (gcloud auth set credentials). It is recommended to use a blank project until it is production ready to prevent disasters.
 Ensure you have the following installed:
 
 | Dependency         | Purpose                                          | Install Command |
