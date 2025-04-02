@@ -1428,6 +1428,137 @@ data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c57ddcc4-9191-4689-a53
 Here we can see the state of the restore for the target cluster is missing 2 volumes. This is because the cluster restore target has 7 nodes, and the source_cluster has 9 nodes, and also, because there is insufficient resources in the second-cluster node pool allocations GCP is unable to scale-up cluster-db2 to reproduce the backup state of the first clusters 9 nodes, namely data-postgresql-2. I am unsure at present whether the storageclass should be identical, or not and whether this is a factor in the issue. For this to be properly resolved the cluster-db2 must more closely match the maximum and minimums of cluster-db1's nodes pools.
 
 
+# Matching Autoscaling Configurations to allow backup to provision correct number of nodes
+
+Here we update the autoscaling_profiles for cluster-db1 ($SOURCE_CLUSTER) and cluster-db2 ($TARGET_CLUSTER) accordingly.
+
+``` [root@localhost gke-stateful-postgres]# cat terraform/gke-standard/main.tf | grep autoscaling_profile -A 6
+    "autoscaling_profile": "OPTIMIZE_UTILIZATION",
+    "enabled" : true,
+    "gpu_resources" : [],
+    "min_cpu_cores" : 1,
+    "min_memory_gb" : 25,
+    "max_cpu_cores" : 80,
+    "max_memory_gb" : 80,
+--
+    "autoscaling_profile": "OPTIMIZE_UTILIZATION",
+    "enabled" : true,
+    "gpu_resources" : [],
+    "min_cpu_cores" : 1,
+    "min_memory_gb" : 25,
+    "max_cpu_cores" : 80,
+    "max_memory_gb" : 80,
+```
+
+We also need to make sure the pools are identical, in case the limits are not sufficient for GKE Backup. For now, we concentrate on matching them, and then we can tune the primary to be smaller later on. We need to make sure we can work at scale first, and then scale down accordingly to load via the optimization algorithm of the autoscaling profile.
+
+## Changing/Matching Cluster Cofigurations of the cluster and its DR failover
+#
+```
+# cat terraform/gke-standard/main.tf | grep "node_pools =" -A 6
+  node_pools = [
+    {
+      name            = "pool-sys"
+      autoscaling     = true
+      min_count       = 1
+      max_count       = 6
+      max_surge       = 1
+--
+  node_pools = [
+    {
+      name            = "pool-sys"
+      autoscaling     = true
+      min_count       = 1
+      max_count       = 6
+      max_surge       = 1
+```
+
+Another thing we will need to be mindful of is how the application interacts with the cluster-db1 and cluster-db2, for exmaple once cluster-db2 is recovered, do we use GCP to takeover the dns for that pg_pool, or, do we write in our application rules to test connections for cluster-db1 and if they fail, to trigger a restore to cluster-db2 automatically, replicating the dataset of cluster-db1 and then once ready, continuing the application. I always prefer the second option, as I believe application should be aware of failover, however some may suggest an Infrastructure as code deployment should not be aware of its datastore state, and that the cloud should be configured so that it is transparent, and seemlessly operate with a private or public lb with a failover instance cluster group. Some limitations of my understanding of how to google cloud may preclude me from understanding the best practice. Though - I think it depends on the application and the type of workload and it's budget.
+
+## Important: Autoscale Consideration Total Node Limits / vs per zone limits
+With this all in mind, Additionally we should consider using total_servers instead of total_zones, in case provisioning of 1 per zone fails because of lack of capacity or an error in one of the 3 zones it uses. This should prevent pain related to their not being enough nodes if db-clusters us-west1-b builds fail due to lack of resources in the hypervisor cells. i.e. the application needs to be able to tolerate failure in one of it's 3 region cloud zones, too. eg. If one of the zones is unprovidable and only 1 per zone is defined in the autoscaling profile, it will result in 2 nodes, not the expected 3. This is why its important to understand Total vs Zonal Node limits.
+```
+[root@localhost gke-stateful-postgres]# terraform -chdir=terraform/gke-standard apply -var project_id=$PROJECT_ID
+<snip>
+
+Terraform will perform the following actions:
+
+  # module.gke-db2.google_container_cluster.primary will be updated in-place
+  ~ resource "google_container_cluster" "primary" {
+        id                                       = "projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2"
+        name                                     = "cluster-db2"
+        # (35 unchanged attributes hidden)
+
+      ~ cluster_autoscaling {
+            # (3 unchanged attributes hidden)
+
+          ~ resource_limits {
+              ~ maximum       = 50 -> 80
+                # (2 unchanged attributes hidden)
+            }
+          ~ resource_limits {
+              ~ maximum       = 50 -> 80
+              ~ minimum       = 4 -> 25
+                # (1 unchanged attribute hidden)
+            }
+
+            # (1 unchanged block hidden)
+        }
+
+        # (29 unchanged blocks hidden)
+    }
+
+  # module.gke-db2.google_container_node_pool.pools["pool-sys"] will be updated in-place
+  ~ resource "google_container_node_pool" "pools" {
+        id                          = "projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2/nodePools/pool-sys"
+        name                        = "pool-sys"
+        # (11 unchanged attributes hidden)
+
+      ~ autoscaling {
+          ~ max_node_count       = 3 -> 6
+            # (4 unchanged attributes hidden)
+        }
+
+        # (5 unchanged blocks hidden)
+    }
+
+Plan: 0 to add, 2 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+module.gke-db2.google_container_cluster.primary: Modifying... [id=projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2]
+module.gke-db2.google_container_cluster.primary: Still modifying... [id=projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2, 10s elapsed]
+module.gke-db2.google_container_cluster.primary: Modifications complete after 17s [id=projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Modifying... [id=projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2/nodePools/pool-sys]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Still modifying... [id=projects/predictx-postgrescluster/locat...lusters/cluster-db2/nodePools/pool-sys, 10s elapsed]
+module.gke-db2.google_container_node_pool.pools["pool-sys"]: Modifications complete after 13s [id=projects/predictx-postgrescluster/locations/us-west1/clusters/cluster-db2/nodePools/pool-sys]
+
+Apply complete! Resources: 0 added, 2 changed, 0 destroyed.
+```
+
+We check the gke-autoscale change carefully, making sure db-1 production is left untouched, and its failover configuration will apply correctly before accepting and applying the template change in terraform.
+
+I also notice that one of the $TARGET_CLUSTER cluster-db2 pools has this configuration.
+
+```
+    {
+      name            = "pool-db"
+      autoscaling     = true
+      max_surge       = 1
+      max_unavailable = 0
+      machine_type    = "e2-standard-2"
+      node_locations  = "us-west1-a"
+      auto_repair     = true
+    },
+```
+
+We add us-west1-b and us-west1-c again, to make sure the exact number of pool regions are the same between the clusters. And then re-apply. Hopefully this should lead to 3 nodes per zone, preventing gke backup restore failures in future.
+
+
 
 # A Grim Situation in postgres GXE HA - guidebook
 The trim situation has been we have multiple problems obfuscating eachother. 
