@@ -1386,8 +1386,46 @@ Waiting for restore to complete... Restore state: VALIDATING.
 Waiting for restore to complete... Restore state: VALIDATING.
 ```
 
-Unfortunately, it looks like the second cluster has some provisioning issues in one of its availability zones us-west1-b, or is hitting some uper memory limit. I actually expected the cluster-db2 instance to resize any limits to match the source cluster itself, but, this seems in retrospect, too good to be true. Finally, after everything is working with backup procedure, to get restore procedure working, cluster configurations should be as closely matched as possible. So that restore will succeed, and, helm must only be runonce on the init of a cluster, reconfiguring helm, i.e. running it twice, or more is the cause of PVC Issues preventing backup. And, limits on the second cluster often are reasons why restore can fail. All in all, everything is, mostly, working for DR in the postgresql HA. 
+Backup now completes, but restore does not complete because the cluster configuration is slightly different. The clusters will need to be identical for the restore to work succesfully. Once a restore completes succesfully, it should gracefully continue to handle connections to the dataset in the same way as the first cluster.
 
+# Troubleshooting GKE Restore to Cluster-DB2
+
+`[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# gcloud container clusters get-credentials $SOURCE_CLUSTER --region=$REGION
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for cluster-db1.
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pvc -n $NAMESPACE
+NAME                                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  VOLUMEATTRIBUTESCLASS   AGE
+data-postgresql-0                            Bound    pvc-d4459d8e-809c-4ec1-819f-183fd6fcfc6d   8Gi        RWO            standard-rwo                  <unset>                 11h
+data-postgresql-ha-postgresql-2              Bound    pvc-edc7ed43-5507-4c8c-863a-450d5ba05b7b   8Gi        RWO            standard-rwo                  <unset>                 11h
+data-postgresql-postgresql-ha-postgresql-0   Bound    pvc-c98daa7b-c243-400f-91e7-5d7d88183ef5   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 11h
+data-postgresql-postgresql-ha-postgresql-1   Bound    pvc-5cb16910-2496-41e1-b517-03d2033291c9   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 11h
+data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c57ddcc4-9191-4689-a53d-0d94c6db4a63   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 11h
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]#
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]#
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]#
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# gcloud container clusters get-credentials $TARGET_CLUSTER --region $DR_REGION --project $PROJECT_ID
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for cluster-db2.
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pvc -n $NAMESPACE
+NAME                                         STATUS    VOLUME                 CAPACITY   ACCESS MODES   STORAGECLASS          VOLUMEATTRIBUTESCLASS   AGE
+data-postgresql-ha-postgresql-2              Pending                                                    gce-pd-gkebackup-de   <unset>                 70m
+data-postgresql-postgresql-ha-postgresql-0   Bound     pvc-1e6d15c45efcd205   8Gi        RWO            gce-pd-gkebackup-dn   <unset>                 70m
+data-postgresql-postgresql-ha-postgresql-1   Bound     pvc-cbf157116aaaff0    8Gi        RWO            gce-pd-gkebackup-dn   <unset>                 70m
+data-postgresql-postgresql-ha-postgresql-2   Bound     pvc-366b74c5bed755ef   8Gi        RWO            gce-pd-gkebackup-dn   <unset>                 70m
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]#
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]#
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# gcloud container clusters get-credentials $SOURCE_CLUSTER --region=$REGION
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for cluster-db1.
+[root@localhost kubernetes-autopilot-cluster-helm-postgresql-automation]# kubectl get pvc -n $NAMESPACE
+NAME                                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  VOLUMEATTRIBUTESCLASS   AGE
+data-postgresql-0                            Bound    pvc-d4459d8e-809c-4ec1-819f-183fd6fcfc6d   8Gi        RWO            standard-rwo                  <unset>                 11h
+data-postgresql-ha-postgresql-2              Bound    pvc-edc7ed43-5507-4c8c-863a-450d5ba05b7b   8Gi        RWO            standard-rwo                  <unset>                 11h
+data-postgresql-postgresql-ha-postgresql-0   Bound    pvc-c98daa7b-c243-400f-91e7-5d7d88183ef5   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 11h
+data-postgresql-postgresql-ha-postgresql-1   Bound    pvc-5cb16910-2496-41e1-b517-03d2033291c9   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 11h
+data-postgresql-postgresql-ha-postgresql-2   Bound    pvc-c57ddcc4-9191-4689-a53d-0d94c6db4a63   8Gi        RWO            premium-rwo-retain-zonal-pg   <unset>                 11h
+```
+Here we can see the state of the restore for the target cluster is missing 2 volumes. This is because the cluster restore target has 7 nodes, and the source_cluster has 9 nodes, and also, because there is insufficient resources in the second-cluster node pool allocations GCP is unable to scale-up cluster-db2 to reproduce the backup state of the first clusters 9 nodes, namely data-postgresql-2. I am unsure at present whether the storageclass should be identical, or not and whether this is a factor in the issue. For this to be properly resolved the cluster-db2 must more closely match the maximum and minimums of cluster-db1's nodes pools.
 
 
 
