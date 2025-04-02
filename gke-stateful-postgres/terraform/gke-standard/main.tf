@@ -142,9 +142,9 @@ module "gke-db2" {
     "enabled" : true,
     "gpu_resources" : [],
     "min_cpu_cores" : 1,
-    "min_memory_gb" : 4,
-    "max_cpu_cores" : 50,
-    "max_memory_gb" : 50,
+    "min_memory_gb" : 25,
+    "max_cpu_cores" : 80,
+    "max_memory_gb" : 80,
   }
   monitoring_enable_managed_prometheus = true
   gke_backup_agent_config = true
