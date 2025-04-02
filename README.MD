@@ -79,21 +79,42 @@ gcloud secrets versions access latest --secret=DB_PASSWORD
 gcloud secrets versions access latest --secret=DB_NAME
 ```
 
-### ✅ Enable Required Google Cloud APIs 
-~~ Enable the following API's in Gcloud ~~ *Deprecated now automatic*
+### ✅ ~~Enable Required Google Cloud APIs~~ Deprecated 
+~~Enable the following API's in Gcloud~~ *Deprecated now automatic*
 
-## ✅ Required IAM Permissions
+##~~✅ Required IAM Permissions~~ Deprecated
 
 The following IAM permissions are required to deploy the GKE cluster and PostgreSQL database:
 
 ```bash
-roles/iam.serviceAccountUser
-roles/container.admin
-roles/compute.networkAdmin
-roles/storage.admin
-roles/cloudsql.admin
-roles/resourcemanager.projectIamAdmin
-roles/viewer
+  roles/artifactregistry.admin
+  roles/artifactregistry.reader
+  roles/artifactregistry.repoAdmin
+  roles/artifactregistry.serviceAgent
+  roles/artifactregistry.writer
+  roles/cloudbuild.builds.builder
+  roles/compute.serviceAgent
+  roles/container.clusterAdmin
+  roles/container.clusterViewer
+  roles/container.defaultNodeServiceAccount
+  roles/container.defaultNodeServiceAgent
+  roles/container.nodeServiceAccount
+  roles/container.serviceAgent
+  roles/containerregistry.ServiceAgent
+  roles/editor
+  roles/gkebackup.serviceAgent
+  roles/gkehub.serviceAgent
+  roles/iam.serviceAccountAdmin
+  roles/iam.serviceAccountUser
+  roles/logging.logWriter
+  roles/monitoring.metricWriter
+  roles/monitoring.viewer
+  roles/networkconnectivity.serviceAgent
+  roles/pubsub.serviceAgent
+  roles/serviceusage.serviceUsageAdmin
+  roles/stackdriver.resourceMetadata.writer
+  roles/storage.objectViewer
+  roles/viewer
 ```
 
 ## Googles Kubernetes Cloud Examples Fail to Build (Updated 28/03/2025)
